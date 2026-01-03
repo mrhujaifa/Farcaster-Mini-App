@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 export function AuthDialog({
   open,
@@ -15,7 +15,7 @@ export function AuthDialog({
   url?: string;
   isError: boolean;
   error?: Error | null;
-  step: 'signin' | 'access' | 'loading';
+  step: "signin" | "access" | "loading";
   isLoading?: boolean;
   signerApprovalUrl?: string | null;
 }) {
@@ -23,9 +23,9 @@ export function AuthDialog({
 
   const getStepContent = () => {
     switch (step) {
-      case 'signin':
+      case "signin":
         return {
-          title: 'Sign in',
+          title: "Sign in",
           description:
             "To sign in, scan the code below with your phone's camera.",
           showQR: true,
@@ -33,19 +33,19 @@ export function AuthDialog({
           showOpenButton: true,
         };
 
-      case 'loading':
+      case "loading":
         return {
-          title: 'Setting up access...',
+          title: "Setting up access...",
           description:
-            'Checking your account permissions and setting up secure access.',
+            "Checking your account permissions and setting up secure access.",
           showQR: false,
-          qrUrl: '',
+          qrUrl: "",
           showOpenButton: false,
         };
 
-      case 'access':
+      case "access":
         return {
-          title: 'Grant Access',
+          title: "Grant Access",
           description: (
             <div className="space-y-3">
               <p className="text-gray-600 dark:text-gray-400">
@@ -99,13 +99,13 @@ export function AuthDialog({
           ),
           // Show QR code if we have signer approval URL, otherwise show loading
           showQR: !!signerApprovalUrl,
-          qrUrl: signerApprovalUrl || '',
+          qrUrl: signerApprovalUrl || "",
           showOpenButton: !!signerApprovalUrl,
         };
 
       default:
         return {
-          title: 'Sign in',
+          title: "Sign in",
           description:
             "To signin, scan the code below with your phone's camera.",
           showQR: true,
@@ -122,7 +122,7 @@ export function AuthDialog({
       <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[80vh] sm:max-h-[90vh] flex flex-col">
         <div className="flex justify-between items-center p-4 sm:p-6 pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {isError ? 'Error' : content.title}
+            {isError ? "Error" : content.title}
           </h2>
           <button
             onClick={onClose}
@@ -148,13 +148,13 @@ export function AuthDialog({
           {isError ? (
             <div className="text-center">
               <div className="text-red-600 dark:text-red-400 mb-4">
-                {error?.message || 'Unknown error, please try again.'}
+                {error?.message || "Unknown error, please try again."}
               </div>
             </div>
           ) : (
             <div className="text-center">
               <div className="mb-6">
-                {typeof content.description === 'string' ? (
+                {typeof content.description === "string" ? (
                   <p className="text-gray-600 dark:text-gray-400">
                     {content.description}
                   </p>
@@ -175,14 +175,14 @@ export function AuthDialog({
                       className="w-48 h-48"
                     />
                   </div>
-                ) : step === 'loading' || isLoading ? (
+                ) : step === "loading" || isLoading ? (
                   <div className="w-48 h-48 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="flex flex-col items-center gap-3">
                       <div className="spinner w-8 h-8" />
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {step === 'loading'
-                          ? 'Setting up access...'
-                          : 'Loading...'}
+                        {step === "loading"
+                          ? "Setting up access..."
+                          : "Loading..."}
                       </span>
                     </div>
                   </div>
@@ -196,14 +196,14 @@ export function AuthDialog({
                       window.open(
                         content.qrUrl
                           .replace(
-                            'https://farcaster.xyz/',
-                            'https://client.farcaster.xyz/deeplinks/'
+                            "https://farcaster.xyz/",
+                            "https://client.farcaster.xyz/deeplinks/"
                           )
                           .replace(
-                            'https://client.farcaster.xyz/deeplinks/signed-key-request',
-                            'https://farcaster.xyz/~/connect'
+                            "https://client.farcaster.xyz/deeplinks/signed-key-request",
+                            "https://farcaster.xyz/~/connect"
                           ),
-                        '_blank'
+                        "_blank"
                       );
                     }
                   }}
