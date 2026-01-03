@@ -108,6 +108,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.19(tsx@4.21.0)(yaml@2.8.2))
+      vercel-sdk:
+        specifier: ^0.1.0
+        version: 0.1.0
       viem:
         specifier: ^2.23.6
         version: 2.43.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
@@ -5816,6 +5819,9 @@ packages:
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
+
+  vercel-sdk@0.1.0:
+    resolution: {integrity: sha512-0Q4vMHXmIXvbm/agjHxtCYCMPQkpNMoLBMMIpH2sUGZMOxjE8g66fWv0gud02PNIXRNMTceE6n9HFh85iyk9WQ==}
 
   viem@2.23.2:
     resolution: {integrity: sha512-NVmW/E0c5crMOtbEAqMF0e3NmvQykFXhLOc/CkLIXOlzHSA6KXVz3CYVmaKqBF8/xtjsjHAGjdJN3Ru1kFJLaA==}
@@ -13628,6 +13634,8 @@ snapshots:
       react: 19.2.3
 
   vary@1.1.2: {}
+
+  vercel-sdk@0.1.0: {}
 
   viem@2.23.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76):
     dependencies:

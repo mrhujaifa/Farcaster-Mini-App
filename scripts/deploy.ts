@@ -57,8 +57,8 @@ async function loadEnvLocal(): Promise<void> {
         console.log("✅ Values from .env.local have been written to .env");
       }
     }
-  } catch (error: unknown) {
-    console.log("Note: No .env.local file found");
+  } catch (error: any) {
+    console.log("Note: No .env.local file found", error.message);
   }
 }
 
@@ -665,7 +665,10 @@ async function deployToVercel(useGitHub = false): Promise<void> {
       });
 
       vercelSetup.on("error", (error) => {
-        console.log("⚠️  Vercel setup command completed (this is normal)");
+        console.log(
+          "⚠️  Vercel setup command completed (this is normal)",
+          error.message
+        );
         resolve(); // Don't reject, as this is often expected
       });
     });
