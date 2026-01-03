@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "name": "MError",
+  "iconUrl": "https://farcester-mini-app.vercel.app/icon.png",
+  "homeUrl": "https://farcester-mini-app.vercel.app",
+  "imageUrl": "https://farcester-mini-app.vercel.app/api/opengraph-image",
+  "buttonTitle": "Launch Mini App",
+  "splashImageUrl": "https://farcester-mini-app.vercel.app/splash.png",
+  "splashBackgroundColor": "#171717",
+
+  "accountAssociation": {
+    "header": "PASTE_FROM_FARCASTER",
+    "payload": "PASTE_FROM_FARCASTER",
+    "signature": "PASTE_FROM_FARCASTER"
+  }
+}
