@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/tabs";
 import { USE_WALLET } from "~/lib/constants";
 import { useNeynarUser } from "../hooks/useNeynarUser";
+import { Toaster } from "react-hot-toast";
 
 // --- Types ---
 export enum Tab {
@@ -98,6 +99,7 @@ export default function App({ title }: AppProps = { title: "FarRewards" }) {
         paddingRight: context?.client.safeAreaInsets?.right ?? 0,
       }}
     >
+      <Toaster position="top-right" />
       {/* Header should be full width */}
       <Header neynarUser={neynarUser} />
       {/* <Navbar></Navbar> */}
