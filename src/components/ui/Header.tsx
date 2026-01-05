@@ -40,7 +40,7 @@ export function Header({ neynarUser }: HeaderProps) {
               </p>
 
               <p className="text-[10px] uppercase tracking-wider text-[#94A3B8]">
-                Premium Mining
+                Premium Rewards
               </p>
             </div>
           </div>
