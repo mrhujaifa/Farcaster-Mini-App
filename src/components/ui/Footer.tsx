@@ -1,65 +1,75 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { Home, PlusCircle, Trophy, Gift, User } from "lucide-react";
 import { Tab } from "~/components/App";
 
 interface FooterProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
-  showWallet?: boolean;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  activeTab,
-  setActiveTab,
-  showWallet = false,
-}) => (
-  <div className="fixed bottom-0 left-0 right-0 mx-4 mb-4 bg-gray-100 dark:bg-gray-800 border-[3px] border-double border-primary px-2 py-2 rounded-lg z-50">
-    <div className="flex justify-around items-center h-14">
-      <button
-        onClick={() => setActiveTab(Tab.Home)}
-        className={`flex flex-col items-center justify-center w-full h-full ${
-          activeTab === Tab.Home
-            ? "text-primary dark:text-primary-light"
-            : "text-gray-500 dark:text-gray-400"
-        }`}
-      >
-        <span className="text-xl">🏠</span>
-        <span className="text-xs mt-1">Home</span>
-      </button>
-      <button
-        onClick={() => setActiveTab(Tab.Actions)}
-        className={`flex flex-col items-center justify-center w-full h-full ${
-          activeTab === Tab.Actions
-            ? "text-primary dark:text-primary-light"
-            : "text-gray-500 dark:text-gray-400"
-        }`}
-      >
-        <span className="text-xl">⚡</span>
-        <span className="text-xs mt-1">Actions</span>
-      </button>
-      <button
-        onClick={() => setActiveTab(Tab.Context)}
-        className={`flex flex-col items-center justify-center w-full h-full ${
-          activeTab === Tab.Context
-            ? "text-primary dark:text-primary-light"
-            : "text-gray-500 dark:text-gray-400"
-        }`}
-      >
-        <span className="text-xl">📋</span>
-        <span className="text-xs mt-1">Context</span>
-      </button>
-      {showWallet && (
-        <button
-          onClick={() => setActiveTab(Tab.Wallet)}
-          className={`flex flex-col items-center justify-center w-full h-full ${
-            activeTab === Tab.Wallet
-              ? "text-primary dark:text-primary-light"
-              : "text-gray-500 dark:text-gray-400"
-          }`}
-        >
-          <span className="text-xl">👛</span>
-          <span className="text-xs mt-1">Wallet</span>
-        </button>
-      )}
+export const Footer: React.FC<FooterProps> = ({ activeTab, setActiveTab }) => {
+  const tabs = [
+    { id: Tab.Home, label: "Home", icon: Home },
+    { id: Tab.Actions, label: "Actions", icon: PlusCircle },
+    { id: Tab.Context, label: "Ranks", icon: Trophy },
+    { id: Tab.Wallet, label: "Airdrop", icon: Gift },
+    { id: Tab.Profile, label: "Profile", icon: User },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 px-4 pb-8 z-50">
+      <div className="max-w-md mx-auto bg-[#0b0a11] border border-white/10 rounded-[28px] p-2 flex items-center justify-around shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="relative flex-1 flex flex-col items-center justify-center py-2 transition-all"
+            >
+              {/* Active lighting system */}
+              {isActive && (
+                <>
+                  {/* Glowing Box Overlay */}
+                  <motion.div
+                    layoutId="active-bg"
+                    className="absolute inset-0 rounded-[22px] border border-[#17a0e5]/40 bg-[#17a0e5]/5 active-lighting-box"
+                    transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                  />
+
+                  {/* Bottom Ray (Small light flare at the bottom) */}
+                  <motion.div
+                    layoutId="bottom-ray"
+                    className="absolute -bottom-1 w-1/2 h-[2px] bottom-ray z-0"
+                  />
+                </>
+              )}
+
+              <div className="relative z-10 flex flex-col items-center gap-1.5">
+                <Icon
+                  size={22}
+                  className={`transition-all duration-300 ${
+                    isActive ? "text-[#17a0e5] icon-neon" : "text-gray-500"
+                  }`}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${
+                    isActive
+                      ? "text-[#17a0e5] opacity-100"
+                      : "text-gray-500 opacity-60"
+                  }`}
+                >
+                  {tab.label}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
-  </div>
-);
+  );
+};

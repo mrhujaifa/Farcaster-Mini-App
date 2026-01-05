@@ -41,12 +41,5 @@ export default {
   },
 
   /* ✅ IMPORTANT FIX */
-  plugins: [
-    require("tailwindcss-animate"),
-    require("daisyui"), // <-- THIS WAS MISSING
-  ],
-
-  daisyui: {
-    themes: ["synthwave"],
-  },
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;

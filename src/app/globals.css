@@ -24,14 +24,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* --background: #0d0a2f; */
-  --background: #0b111c;
-  --foreground: #0b111c;
-}
-
 body {
-  background: var(--background);
+  background-color: #0b111c; /* light gray background */
   font-family: "Inter", Helvetica, Arial, sans-serif;
 }
 
@@ -42,72 +36,6 @@ body {
 
 *::-webkit-scrollbar {
   display: none;
-}
-
-@layer base {
-  :root {
-    --radius: 0.5rem;
-  }
-}
-
-@layer components {
-  /* Global container styles for consistent layout */
-  .container {
-    @apply mx-auto max-w-md px-4;
-  }
-
-  .container-wide {
-    @apply mx-auto max-w-lg px-4;
-  }
-
-  .container-narrow {
-    @apply mx-auto max-w-sm px-4;
-  }
-
-  /* Global card styles */
-  .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm;
-  }
-
-  .card-primary {
-    @apply bg-primary/10 border-primary/20;
-  }
-
-  /* Global button styles */
-  .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-  }
-
-  .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
-  }
-
-  .btn-secondary {
-    @apply bg-secondary text-gray-900 hover:bg-gray-200 focus:ring-gray-500 dark:bg-secondary-dark dark:text-gray-100 dark:hover:bg-gray-600;
-  }
-
-  .btn-outline {
-    @apply border border-gray-300 bg-transparent hover:bg-gray-50 focus:ring-gray-500 dark:border-gray-600 dark:hover:bg-gray-800;
-  }
-
-  /* Global input styles */
-  .input {
-    @apply block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400;
-  }
-
-  /* Global loading spinner */
-  .spinner {
-    @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary;
-  }
-
-  .spinner-primary {
-    @apply animate-spin rounded-full border-2 border-white border-t-transparent;
-  }
-
-  /* Global focus styles */
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
-  }
 }
 
 @keyframes gradient-move {
@@ -130,4 +58,22 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Container glow */
+.active-lighting-box {
+  box-shadow: 0 0 20px rgba(23, 160, 229, 0.15),
+    inset 0 0 12px rgba(23, 160, 229, 0.1);
+}
+
+/* Nicher diker light ray effect */
+.bottom-ray {
+  background: radial-gradient(circle at center, #17a0e5 0%, transparent 70%);
+  filter: blur(8px);
+  opacity: 0.4;
+}
+
+/* Icon lighting */
+.icon-neon {
+  filter: drop-shadow(0 0 6px rgba(23, 160, 229, 0.8));
 }

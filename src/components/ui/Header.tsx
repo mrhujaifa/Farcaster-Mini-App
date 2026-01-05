@@ -19,13 +19,13 @@ export function Header({ neynarUser }: HeaderProps) {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   return (
-    <div className="relative px-4 mt-4">
+    <div className="relative px-4 ">
       {/* Header Card */}
       <div className="relative overflow-hidden rounded-2xl ">
         {/* Gradient Glow */}
         <div className="absolute inset-0 " />
 
-        <div className="relative flex items-center justify-between px-4 py-3">
+        <div className="relative flex items-center justify-between py-3">
           {/* Left: App info */}
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-full  p-[2px]">
@@ -48,11 +48,6 @@ export function Header({ neynarUser }: HeaderProps) {
           {/* Right: User */}
           {context?.user && (
             <div className="flex items-center gap-3">
-              {/* Dark mode / status icon */}
-              <div className="w-9 h-9 rounded-full bg-[#020617] border border-[#1E293B] flex items-center justify-center text-[#94A3B8]">
-                🌙
-              </div>
-
               {/* Wallet / User chip */}
               <div
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}

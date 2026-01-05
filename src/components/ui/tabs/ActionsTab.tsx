@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { useMiniApp } from '@neynar/react';
-import { ShareButton } from '../Share';
-import { Button } from '../Button';
-import { SignIn } from '../wallet/SignIn';
-import { type Haptics } from '@farcaster/miniapp-sdk';
-import { APP_URL } from '~/lib/constants';
-import { NeynarAuthButton } from '../NeynarAuthButton';
+import { useCallback, useState } from "react";
+import { useMiniApp } from "@neynar/react";
+import { ShareButton } from "../Share";
+import { Button } from "../Button";
+import { SignIn } from "../wallet/SignIn";
+import { type Haptics } from "@farcaster/miniapp-sdk";
+import { APP_URL } from "~/lib/constants";
+import { NeynarAuthButton } from "../NeynarAuthButton";
 
 /**
  * ActionsTab component handles mini app actions like sharing, notifications, and haptic feedback.
@@ -35,11 +35,11 @@ export function ActionsTab() {
 
   // --- State ---
   const [notificationState, setNotificationState] = useState({
-    sendStatus: '',
+    sendStatus: "",
     shareUrlCopied: false,
   });
   const [selectedHapticIntensity, setSelectedHapticIntensity] =
-    useState<Haptics.ImpactOccurredType>('medium');
+    useState<Haptics.ImpactOccurredType>("medium");
 
   // --- Handlers ---
   /**
@@ -52,27 +52,27 @@ export function ActionsTab() {
    * @returns Promise that resolves when the notification is sent or fails
    */
   const sendFarcasterNotification = useCallback(async () => {
-    setNotificationState((prev) => ({ ...prev, sendStatus: '' }));
+    setNotificationState((prev) => ({ ...prev, sendStatus: "" }));
     if (!notificationDetails || !context) {
       return;
     }
     try {
-      const response = await fetch('/api/send-notification', {
-        method: 'POST',
-        mode: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/send-notification", {
+        method: "POST",
+        mode: "same-origin",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fid: context.user.fid,
           notificationDetails,
         }),
       });
       if (response.status === 200) {
-        setNotificationState((prev) => ({ ...prev, sendStatus: 'Success' }));
+        setNotificationState((prev) => ({ ...prev, sendStatus: "Success" }));
         return;
       } else if (response.status === 429) {
         setNotificationState((prev) => ({
           ...prev,
-          sendStatus: 'Rate limited',
+          sendStatus: "Rate limited",
         }));
         return;
       }
@@ -118,20 +118,20 @@ export function ActionsTab() {
     try {
       await haptics.impactOccurred(selectedHapticIntensity);
     } catch (error) {
-      console.error('Haptic feedback failed:', error);
+      console.error("Haptic feedback failed:", error);
     }
   }, [haptics, selectedHapticIntensity]);
 
   // --- Render ---
   return (
-    <div className="space-y-3 px-6 w-full max-w-md mx-auto">
+    <div className="space-y-3 px-6 w-full ">
       {/* Share functionality */}
       <ShareButton
         buttonText="Share Mini App"
         cast={{
-          text: 'Check out this awesome frame @1 @2 @3! 🚀🪐',
+          text: "Check out this awesome frame @1 @2 @3! 🚀🪐",
           bestFriends: true,
-          embeds: [`${APP_URL}/share/${context?.user?.fid || ''}`],
+          embeds: [`${APP_URL}/share/${context?.user?.fid || ""}`],
         }}
         className="w-full"
       />
@@ -145,7 +145,7 @@ export function ActionsTab() {
       {/* Mini app actions */}
       <Button
         onClick={() =>
-          actions.openUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+          actions.openUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         }
         className="w-full"
       >
@@ -176,7 +176,7 @@ export function ActionsTab() {
         disabled={!context?.user?.fid}
         className="w-full"
       >
-        {notificationState.shareUrlCopied ? 'Copied!' : 'Copy share URL'}
+        {notificationState.shareUrlCopied ? "Copied!" : "Copy share URL"}
       </Button>
 
       {/* Haptic feedback controls */}
@@ -193,11 +193,11 @@ export function ActionsTab() {
           }
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value={'light'}>Light</option>
-          <option value={'medium'}>Medium</option>
-          <option value={'heavy'}>Heavy</option>
-          <option value={'soft'}>Soft</option>
-          <option value={'rigid'}>Rigid</option>
+          <option value={"light"}>Light</option>
+          <option value={"medium"}>Medium</option>
+          <option value={"heavy"}>Heavy</option>
+          <option value={"soft"}>Soft</option>
+          <option value={"rigid"}>Rigid</option>
         </select>
         <Button onClick={triggerHapticFeedback} className="w-full">
           Trigger Haptic Feedback
