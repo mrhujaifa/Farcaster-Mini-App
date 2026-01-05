@@ -95,8 +95,7 @@ export function SendEth() {
 
   // --- Handlers ---
   /**
-   * Handles sending the ETH transaction.
-   *
+   
    * This function sends a small amount of ETH (1 wei) to the protocol guild
    * address for the current chain. The transaction is sent using the wagmi
    * sendTransaction hook.
