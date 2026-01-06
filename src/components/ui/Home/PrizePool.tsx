@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Users,
   Trophy,
@@ -12,13 +12,33 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  useWriteContract,
-  useWaitForTransactionReceipt,
-  useContractRead,
-} from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+
+const MAX_ENTRIES = 100; // সর্বোচ্চ এন্ট্রি সীমা
+const EVENT_DURATION_MS =
+  2 * 24 * 60 * 60 * 1000 + 14 * 60 * 60 * 1000 + 30 * 60 * 1000; // 2d 14h 30m
 
 export default function PrizeCardUI() {
+  // State to track entries count and user entry
+  const [entriesCount, setEntriesCount] = useState(2); // শুরুতে 2 (তোমার কোড থেকে)
+  const [hasUserEntered, setHasUserEntered] = useState(false);
+
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState(EVENT_DURATION_MS);
+
+  // Wagmi hooks for transaction
+  const {
+    data: hash,
+    error,
+    writeContract,
+    isPending: isSubmitting,
+  } = useWriteContract();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
+
   const contractAddress = "0x6f9FBA04733ff91De596dC5fb64034ee9c2eF7f2";
 
   const abi = [
@@ -29,95 +49,60 @@ export default function PrizeCardUI() {
       inputs: [],
       outputs: [],
     },
-    {
-      name: "getEntryCount",
-      type: "function",
-      stateMutability: "view",
-      inputs: [],
-      outputs: [{ type: "uint256" }],
-    },
-    {
-      name: "getMaxEntries",
-      type: "function",
-      stateMutability: "view",
-      inputs: [],
-      outputs: [{ type: "uint256" }],
-    },
-    {
-      name: "getPrizeAmount",
-      type: "function",
-      stateMutability: "view",
-      inputs: [],
-      outputs: [{ type: "uint256" }],
-    },
-    {
-      name: "getPrizeUSDValue",
-      type: "function",
-      stateMutability: "view",
-      inputs: [],
-      outputs: [{ type: "uint256" }],
-    },
   ] as const;
 
-  // ট্রানজেকশন পাঠানোর হুক
-  const {
-    data: hash,
-    error,
-    writeContract,
-    isPending: isSubmitting,
-  } = useWriteContract();
+  // Handle countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) return;
 
-  // ট্রানজেকশন কনফার্মেশন চেক করার হুক
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+    const interval = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1000) {
+          clearInterval(interval);
+          return 0;
+        }
+        return t - 1000;
+      });
+    }, 1000);
 
-  // স্মার্ট কন্ট্রাক্ট থেকে ডাটা ফেচ
-  const { data: entriesData } = useContractRead({
-    address: contractAddress,
-    abi: abi,
-    functionName: "getEntryCount",
-  });
+    return () => clearInterval(interval);
+  }, [timeLeft]);
 
-  const { data: maxEntriesData } = useContractRead({
-    address: contractAddress,
-    abi: abi,
-    functionName: "getMaxEntries",
-  });
+  // Format time left to "02d : 14h : 30m"
+  const formatTimeLeft = () => {
+    if (timeLeft <= 0) return "00d : 00h : 00m";
 
-  const { data: prizeAmountData } = useContractRead({
-    address: contractAddress,
-    abi: abi,
-    functionName: "getPrizeAmount",
-  });
+    const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+    const hours = Math.floor(
+      (timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+    );
+    const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
 
-  const { data: prizeUSDValueData } = useContractRead({
-    address: contractAddress,
-    abi: abi,
-    functionName: "getPrizeUSDValue",
-  });
+    const pad = (n: number) => n.toString().padStart(2, "0");
 
-  // ডাটা প্রসেসিং
-  const entries = entriesData ? Number(entriesData) : 0;
-  const maxEntries = maxEntriesData ? Number(maxEntriesData) : 100;
-  const prizeAmount = prizeAmountData ? Number(prizeAmountData) : 20000;
-  const prizeUSDValue = prizeUSDValueData
-    ? Number(prizeUSDValueData) / 100
-    : 20;
+    return `${pad(days)}d : ${pad(hours)}h : ${pad(minutes)}m`;
+  };
 
   const handleWinNow = useCallback(() => {
-    if (isConfirmed) return;
+    if (isConfirmed || hasUserEntered || entriesCount >= MAX_ENTRIES) return;
 
     writeContract({
       address: contractAddress as `0x${string}`,
       abi: abi,
       functionName: "enterRaffle",
     });
-  }, [isConfirmed, writeContract]);
+  }, [isConfirmed, hasUserEntered, entriesCount, writeContract]);
+
+  // After confirmation, update state accordingly
+  useEffect(() => {
+    if (isConfirmed && !hasUserEntered && entriesCount < MAX_ENTRIES) {
+      setHasUserEntered(true);
+      setEntriesCount((c) => Math.min(c + 1, MAX_ENTRIES));
+    }
+  }, [isConfirmed, hasUserEntered, entriesCount]);
 
   return (
-    <div className="flex items-center justify-center px-3 bg-[#020408]">
+    <div className="flex items-center justify-center px-3 bg-[#020408] min-h-screen">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -146,7 +131,6 @@ export default function PrizeCardUI() {
           </div>
         </div>
 
-        {/* Entries */}
         <div className="grid grid-cols-2 gap-3 relative z-10">
           <motion.div
             whileHover={{ y: -2 }}
@@ -161,21 +145,22 @@ export default function PrizeCardUI() {
               </span>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-white">{entries}</span>
+              <span className="text-2xl font-black text-white">
+                {entriesCount}
+              </span>
               <span className="text-xs text-gray-600 font-bold">
-                / {maxEntries}
+                / {MAX_ENTRIES}
               </span>
             </div>
             <div className="mt-3 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${(entries / maxEntries) * 100}%` }}
+                animate={{ width: `${(entriesCount / MAX_ENTRIES) * 100}%` }}
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(59,130,246,0.4)]"
               />
             </div>
           </motion.div>
 
-          {/* Prize */}
           <motion.div
             whileHover={{ y: -2 }}
             className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 relative overflow-hidden"
@@ -189,20 +174,17 @@ export default function PrizeCardUI() {
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl font-black text-white">
-                {prizeAmount.toLocaleString()}
-              </span>
+              <span className="text-2xl font-black text-white">20,000</span>
               <span className="text-[9px] font-bold text-amber-500 tracking-widest leading-none mt-1">
                 $FR TOKEN
               </span>
               <span className="text-[10px] text-gray-500 mt-1">
-                ≈ ${prizeUSDValue.toFixed(2)} USDC
+                ≈ $20.00 USDC
               </span>
             </div>
           </motion.div>
         </div>
 
-        {/* Distribution */}
         <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 rounded-2xl p-4 relative">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -237,15 +219,19 @@ export default function PrizeCardUI() {
           </div>
         </div>
 
-        {/* Win Now Button */}
         <div className="space-y-4">
           <motion.button
             onClick={handleWinNow}
-            disabled={isSubmitting || isConfirming || isConfirmed}
+            disabled={
+              isSubmitting ||
+              isConfirming ||
+              hasUserEntered ||
+              entriesCount >= MAX_ENTRIES
+            }
             whileTap={{ scale: 0.95 }}
             className={`group relative w-full py-4 rounded-2xl font-black text-sm tracking-widest transition-all duration-500 overflow-hidden ${
-              isConfirmed
-                ? "bg-emerald-500/10 border border-emerald-500/50 text-emerald-500"
+              hasUserEntered || entriesCount >= MAX_ENTRIES
+                ? "bg-emerald-500/10 border border-emerald-500/50 text-emerald-500 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)]"
             } disabled:opacity-80 disabled:cursor-not-allowed`}
           >
@@ -260,7 +246,7 @@ export default function PrizeCardUI() {
                   <Loader2 size={18} className="animate-spin" />{" "}
                   {isSubmitting ? "SIGNING..." : "CONFIRMING..."}
                 </motion.span>
-              ) : isConfirmed ? (
+              ) : hasUserEntered ? (
                 <motion.span
                   key="joined"
                   initial={{ y: 20 }}
@@ -268,6 +254,15 @@ export default function PrizeCardUI() {
                   className="flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 size={18} /> YOU ARE IN
+                </motion.span>
+              ) : entriesCount >= MAX_ENTRIES ? (
+                <motion.span
+                  key="ended"
+                  initial={{ y: 20 }}
+                  animate={{ y: 0 }}
+                  className="flex items-center justify-center gap-2"
+                >
+                  🚫 EVENT ENDED
                 </motion.span>
               ) : (
                 <motion.span
@@ -279,9 +274,12 @@ export default function PrizeCardUI() {
                 </motion.span>
               )}
             </AnimatePresence>
-            {!isConfirmed && !isSubmitting && !isConfirming && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
-            )}
+            {!hasUserEntered &&
+              !isSubmitting &&
+              !isConfirming &&
+              entriesCount < MAX_ENTRIES && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
+              )}
           </motion.button>
 
           {error && (
@@ -296,7 +294,7 @@ export default function PrizeCardUI() {
             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-tighter">
               <div className="flex items-center gap-1 text-red-400">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                02d : 14h : 30m
+                {formatTimeLeft()}
               </div>
               <div className="w-1 h-1 bg-white/10 rounded-full" />
               <button className="text-gray-500 hover:text-blue-400 transition-colors flex items-center gap-1">
