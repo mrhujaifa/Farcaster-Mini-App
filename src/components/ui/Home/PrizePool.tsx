@@ -12,21 +12,23 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import {
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useAccount,
+} from "wagmi";
 
-const MAX_ENTRIES = 100; // সর্বোচ্চ এন্ট্রি সীমা
+const MAX_ENTRIES = 100;
 const EVENT_DURATION_MS =
-  2 * 24 * 60 * 60 * 1000 + 14 * 60 * 60 * 1000 + 30 * 60 * 1000; // 2d 14h 30m
+  2 * 24 * 60 * 60 * 1000 + 14 * 60 * 60 * 1000 + 30 * 60 * 1000;
 
 export default function PrizeCardUI() {
-  // State to track entries count and user entry
-  const [entriesCount, setEntriesCount] = useState(2); // শুরুতে 2 (তোমার কোড থেকে)
-  const [hasUserEntered, setHasUserEntered] = useState(false);
+  const { address } = useAccount();
 
-  // Timer state
+  const [entriesCount, setEntriesCount] = useState(0);
+  const [hasUserEntered, setHasUserEntered] = useState(false);
   const [timeLeft, setTimeLeft] = useState(EVENT_DURATION_MS);
 
-  // Wagmi hooks for transaction
   const {
     data: hash,
     error,
@@ -35,9 +37,7 @@ export default function PrizeCardUI() {
   } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+    useWaitForTransactionReceipt({ hash });
 
   const contractAddress = "0x6f9FBA04733ff91De596dC5fb64034ee9c2eF7f2";
 
@@ -51,55 +51,90 @@ export default function PrizeCardUI() {
     },
   ] as const;
 
-  // Handle countdown timer
+  /* ---------------- SERVER STATE LOAD ---------------- */
+  useEffect(() => {
+    if (!address) return;
+
+    fetch(`/api/raffle/state?address=${address}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEntriesCount(data.entriesCount);
+        setHasUserEntered(data.hasUserEntered);
+      })
+      .catch(() => {});
+  }, [address]);
+
+  /* ---------------- TIMER ---------------- */
   useEffect(() => {
     if (timeLeft <= 0) return;
 
-    const interval = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1000) {
-          clearInterval(interval);
-          return 0;
-        }
-        return t - 1000;
-      });
+    const i = setInterval(() => {
+      setTimeLeft((t) => (t <= 1000 ? 0 : t - 1000));
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(i);
   }, [timeLeft]);
 
-  // Format time left to "02d : 14h : 30m"
   const formatTimeLeft = () => {
     if (timeLeft <= 0) return "00d : 00h : 00m";
 
-    const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
-    const hours = Math.floor(
-      (timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
-    );
-    const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-
+    const d = Math.floor(timeLeft / 86400000);
+    const h = Math.floor((timeLeft % 86400000) / 3600000);
+    const m = Math.floor((timeLeft % 3600000) / 60000);
     const pad = (n: number) => n.toString().padStart(2, "0");
 
-    return `${pad(days)}d : ${pad(hours)}h : ${pad(minutes)}m`;
+    return `${pad(d)}d : ${pad(h)}h : ${pad(m)}m`;
   };
 
+  /* ---------------- CLICK HANDLER ---------------- */
   const handleWinNow = useCallback(() => {
-    if (isConfirmed || hasUserEntered || entriesCount >= MAX_ENTRIES) return;
+    if (
+      !address ||
+      hasUserEntered ||
+      entriesCount >= MAX_ENTRIES ||
+      isSubmitting ||
+      isConfirming
+    )
+      return;
 
     writeContract({
       address: contractAddress as `0x${string}`,
-      abi: abi,
+      abi,
       functionName: "enterRaffle",
     });
-  }, [isConfirmed, hasUserEntered, entriesCount, writeContract]);
+  }, [
+    address,
+    hasUserEntered,
+    entriesCount,
+    isSubmitting,
+    isConfirming,
+    writeContract,
+  ]);
 
-  // After confirmation, update state accordingly
+  /* ---------------- AFTER TX CONFIRM ---------------- */
   useEffect(() => {
-    if (isConfirmed && !hasUserEntered && entriesCount < MAX_ENTRIES) {
-      setHasUserEntered(true);
-      setEntriesCount((c) => Math.min(c + 1, MAX_ENTRIES));
-    }
-  }, [isConfirmed, hasUserEntered, entriesCount]);
+    if (!isConfirmed || !hash || !address || hasUserEntered) return;
+
+    fetch("/api/raffle/enter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        address,
+        txHash: hash,
+      }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+
+        const state = await fetch(`/api/raffle/state?address=${address}`).then(
+          (r) => r.json()
+        );
+
+        setEntriesCount(state.entriesCount);
+        setHasUserEntered(state.hasUserEntered);
+      })
+      .catch(() => {});
+  }, [isConfirmed, hash, address, hasUserEntered]);
 
   return (
     <div className="flex items-center justify-center px-3 bg-[#020408] min-h-screen">
