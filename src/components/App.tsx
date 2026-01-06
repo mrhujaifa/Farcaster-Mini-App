@@ -9,6 +9,7 @@ import {
   ActionsTab,
   ContextTab,
   WalletTab,
+  ProfileTab,
 } from "~/components/ui/tabs";
 import { USE_WALLET } from "~/lib/constants";
 import { useNeynarUser } from "../hooks/useNeynarUser";
@@ -20,6 +21,7 @@ export enum Tab {
   Actions = "actions",
   Context = "context",
   Wallet = "wallet",
+  Profile = "profile",
 }
 
 export interface AppProps {
@@ -101,7 +103,7 @@ export default function App({ title }: AppProps = { title: "FarRewards" }) {
     >
       <Toaster position="top-right" />
       {/* Header should be full width */}
-      <Header neynarUser={neynarUser} />
+      <Header />
       {/* <Navbar></Navbar> */}
 
       {/* Main content and footer should be centered */}
@@ -114,6 +116,7 @@ export default function App({ title }: AppProps = { title: "FarRewards" }) {
         {currentTab === Tab.Actions && <ActionsTab />}
         {currentTab === Tab.Context && <ContextTab />}
         {currentTab === Tab.Wallet && <WalletTab />}
+        {currentTab === Tab.Profile && <ProfileTab />}
 
         {/* Footer with navigation */}
         <Footer

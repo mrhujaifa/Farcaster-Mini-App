@@ -8,6 +8,7 @@ import { SignIn } from "../wallet/SignIn";
 import { type Haptics } from "@farcaster/miniapp-sdk";
 import { APP_URL } from "~/lib/constants";
 import { NeynarAuthButton } from "../NeynarAuthButton";
+import ComingSoon from "~/components/Test/comingSoon";
 
 /**
  * ActionsTab component handles mini app actions like sharing, notifications, and haptic feedback.
@@ -124,85 +125,88 @@ export function ActionsTab() {
 
   // --- Render ---
   return (
-    <div className="space-y-3 px-6 w-full ">
-      {/* Share functionality */}
-      <ShareButton
-        buttonText="Share Mini App"
-        cast={{
-          text: "Check out this awesome frame @1 @2 @3! 🚀🪐",
-          bestFriends: true,
-          embeds: [`${APP_URL}/share/${context?.user?.fid || ""}`],
-        }}
-        className="w-full"
-      />
-
-      {/* Authentication */}
-      <SignIn />
-
-      {/* Neynar Authentication */}
-      <NeynarAuthButton />
-
-      {/* Mini app actions */}
-      <Button
-        onClick={() =>
-          actions.openUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-        }
-        className="w-full"
-      >
-        Open Link
-      </Button>
-
-      <Button onClick={actions.addMiniApp} disabled={added} className="w-full">
-        Add Mini App to Client
-      </Button>
-
-      {/* Notification functionality */}
-      {notificationState.sendStatus && (
-        <div className="text-sm w-full">
-          Send notification result: {notificationState.sendStatus}
-        </div>
-      )}
-      <Button
-        onClick={sendFarcasterNotification}
-        disabled={!notificationDetails}
-        className="w-full"
-      >
-        Send notification
-      </Button>
-
-      {/* Share URL copying */}
-      <Button
-        onClick={copyUserShareUrl}
-        disabled={!context?.user?.fid}
-        className="w-full"
-      >
-        {notificationState.shareUrlCopied ? "Copied!" : "Copy share URL"}
-      </Button>
-
-      {/* Haptic feedback controls */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Haptic Intensity
-        </label>
-        <select
-          value={selectedHapticIntensity}
-          onChange={(e) =>
-            setSelectedHapticIntensity(
-              e.target.value as Haptics.ImpactOccurredType
-            )
-          }
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value={"light"}>Light</option>
-          <option value={"medium"}>Medium</option>
-          <option value={"heavy"}>Heavy</option>
-          <option value={"soft"}>Soft</option>
-          <option value={"rigid"}>Rigid</option>
-        </select>
-        <Button onClick={triggerHapticFeedback} className="w-full">
-          Trigger Haptic Feedback
-        </Button>
-      </div>
+    <div>
+      <ComingSoon></ComingSoon>
     </div>
+    // <div className="space-y-3 px-6 w-full ">
+    //   {/* Share functionality */}
+    //   <ShareButton
+    //     buttonText="Share Mini App"
+    //     cast={{
+    //       text: "Check out this awesome frame @1 @2 @3! 🚀🪐",
+    //       bestFriends: true,
+    //       embeds: [`${APP_URL}/share/${context?.user?.fid || ""}`],
+    //     }}
+    //     className="w-full"
+    //   />
+
+    //   {/* Authentication */}
+    //   <SignIn />
+
+    //   {/* Neynar Authentication */}
+    //   <NeynarAuthButton />
+
+    //   {/* Mini app actions */}
+    //   <Button
+    //     onClick={() =>
+    //       actions.openUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    //     }
+    //     className="w-full"
+    //   >
+    //     Open Link
+    //   </Button>
+
+    //   <Button onClick={actions.addMiniApp} disabled={added} className="w-full">
+    //     Add Mini App to Client
+    //   </Button>
+
+    //   {/* Notification functionality */}
+    //   {notificationState.sendStatus && (
+    //     <div className="text-sm w-full">
+    //       Send notification result: {notificationState.sendStatus}
+    //     </div>
+    //   )}
+    //   <Button
+    //     onClick={sendFarcasterNotification}
+    //     disabled={!notificationDetails}
+    //     className="w-full"
+    //   >
+    //     Send notification
+    //   </Button>
+
+    //   {/* Share URL copying */}
+    //   <Button
+    //     onClick={copyUserShareUrl}
+    //     disabled={!context?.user?.fid}
+    //     className="w-full"
+    //   >
+    //     {notificationState.shareUrlCopied ? "Copied!" : "Copy share URL"}
+    //   </Button>
+
+    //   {/* Haptic feedback controls */}
+    //   <div className="space-y-2">
+    //     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+    //       Haptic Intensity
+    //     </label>
+    //     <select
+    //       value={selectedHapticIntensity}
+    //       onChange={(e) =>
+    //         setSelectedHapticIntensity(
+    //           e.target.value as Haptics.ImpactOccurredType
+    //         )
+    //       }
+    //       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+    //     >
+    //       <option value={"light"}>Light</option>
+    //       <option value={"medium"}>Medium</option>
+    //       <option value={"heavy"}>Heavy</option>
+    //       <option value={"soft"}>Soft</option>
+    //       <option value={"rigid"}>Rigid</option>
+    //     </select>
+    //     <Button onClick={triggerHapticFeedback} className="w-full">
+    //       Trigger Haptic Feedback
+    //     </Button>
+    //   </div>
+    // </div>
   );
 }

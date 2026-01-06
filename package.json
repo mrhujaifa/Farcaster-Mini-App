@@ -41,6 +41,8 @@
     "ansi-styles": "6.2.1"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@farcaster/auth-client": ">=0.3.0 <1.0.0",
     "@farcaster/auth-kit": ">=0.6.0 <1.0.0",
     "@farcaster/frame-sdk": "^0.1.12",
@@ -50,6 +52,7 @@
     "@farcaster/miniapp-sdk": ">=0.1.6 <1.0.0",
     "@farcaster/miniapp-wagmi-connector": "^1.0.0",
     "@farcaster/quick-auth": ">=0.0.7 <1.0.0",
+    "@mui/material": "^7.3.6",
     "@neynar/nodejs-sdk": "^2.19.0",
     "@neynar/react": "^1.2.15",
     "@pigment-css/react": "^0.0.30",

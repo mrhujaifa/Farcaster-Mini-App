@@ -18,6 +18,9 @@ import {
   useAccount,
 } from "wagmi";
 import toast from "react-hot-toast";
+import Image from "next/image";
+import Skeleton from "@mui/material/Skeleton";
+import userImg from "../../../../public/user.png";
 
 const MAX_ENTRIES = 100;
 const EVENT_DURATION_MS =
@@ -32,7 +35,7 @@ export default function PrizeCardUI() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [Alldata, setAllData] = useState<{
-    totalCount: number;
+    totalCount: number | undefined;
     entries: any[];
   } | null>(null);
 
@@ -190,8 +193,23 @@ export default function PrizeCardUI() {
       });
   }, []);
 
+  if (loading) {
+    return (
+      <div className="max-w-sm w-full p-5 space-y-6 bg-[#05080f]/80 backdrop-blur-xl rounded-[15px] border border-white/10 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] relative overflow-hidden mx-auto">
+        <Skeleton variant="rectangular" height={40} className="mb-4" />
+        <Skeleton variant="rectangular" height={80} className="mb-4" />
+        <Skeleton variant="rectangular" height={100} className="mb-4" />
+        <Skeleton variant="rectangular" height={50} />
+      </div>
+    );
+  }
+
+  const progressPercentage = Alldata?.totalCount
+    ? (Alldata.totalCount / MAX_ENTRIES) * 100
+    : 0;
+
   return (
-    <div className="flex items-center justify-center px-3 bg-[#020408] min-h-screen">
+    <div className="flex items-center justify-center px-3 ">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -207,15 +225,23 @@ export default function PrizeCardUI() {
               High Yield Raffle
             </span>
           </div>
-          <div className="flex -space-x-1.5">
+          <div className="flex -space-x-2 items-center">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-6 h-6 rounded-full border-2 border-[#05080f] bg-gradient-to-tr from-gray-700 to-gray-900"
-              />
+                className="w-6 h-6 rounded-full overflow-hidden border-2 border-[#05080f] bg-gray-800"
+              >
+                <Image
+                  src={userImg}
+                  height={24}
+                  width={24}
+                  alt="user img"
+                  className="object-cover"
+                />
+              </div>
             ))}
-            <div className="w-6 h-6 rounded-full border-2 border-[#05080f] bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white">
-              +48
+            <div className="w-6 h-6 rounded-full border-2 border-[#05080f] bg-blue-600 flex items-center justify-center text-[9px] font-bold text-white">
+              +{Alldata?.totalCount ?? 0}
             </div>
           </div>
         </div>
@@ -241,11 +267,15 @@ export default function PrizeCardUI() {
                 / {MAX_ENTRIES}
               </span>
             </div>
+
             <div className="mt-3 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${(entriesCount / MAX_ENTRIES) * 100}%` }}
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(59,130,246,0.4)]"
+                animate={{
+                  width: `${Math.min(Math.max(progressPercentage, 0), 100)}%`,
+                }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(59,130,246,0.6)] rounded-full"
               />
             </div>
           </motion.div>

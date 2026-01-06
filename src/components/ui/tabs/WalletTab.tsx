@@ -23,6 +23,7 @@ import { SignSolanaMessage } from "../wallet/SignSolanaMessage";
 import { SendSolana } from "../wallet/SendSolana";
 import { USE_WALLET, APP_NAME } from "../../../lib/constants";
 import { useMiniApp } from "@neynar/react";
+import ComingSoon from "~/components/Test/comingSoon";
 
 /**
  * WalletTab component manages wallet-related UI for both EVM and Solana chains.
@@ -312,75 +313,78 @@ export function WalletTab() {
 
   // --- Render ---
   return (
-    <div className="space-y-3 px-6 w-full max-w-md mx-auto">
-      {/* Wallet Information Display */}
-      <WalletStatus address={address} chainId={chainId} />
-
-      {/* Connection Controls */}
-      <ConnectionControls
-        isConnected={isConnected}
-        context={context}
-        connect={connect}
-        connectors={connectors}
-        disconnect={disconnect}
-      />
-
-      {/* EVM Wallet Components */}
-      <SignEvmMessage />
-
-      {isConnected && (
-        <>
-          <SendEth />
-          <Button
-            onClick={sendEvmContractTransaction}
-            disabled={!isConnected || isEvmTransactionPending}
-            isLoading={isEvmTransactionPending}
-            className="w-full"
-          >
-            Send Transaction (contract)
-          </Button>
-          {isEvmTransactionError && renderError(evmTransactionError)}
-          {evmContractTransactionHash && (
-            <div className="text-xs w-full">
-              <div>Hash: {truncateAddress(evmContractTransactionHash)}</div>
-              <div>
-                Status:{" "}
-                {isEvmTransactionConfirming
-                  ? "Confirming..."
-                  : isEvmTransactionConfirmed
-                  ? "Confirmed!"
-                  : "Pending"}
-              </div>
-            </div>
-          )}
-          <Button
-            onClick={signTyped}
-            disabled={!isConnected || isEvmSignTypedDataPending}
-            isLoading={isEvmSignTypedDataPending}
-            className="w-full"
-          >
-            Sign Typed Data
-          </Button>
-          {isEvmSignTypedDataError && renderError(evmSignTypedDataError)}
-          <Button
-            onClick={handleSwitchChain}
-            disabled={isChainSwitchPending}
-            isLoading={isChainSwitchPending}
-            className="w-full"
-          >
-            Switch to {nextChain.name}
-          </Button>
-          {isChainSwitchError && renderError(chainSwitchError)}
-        </>
-      )}
-
-      {/* Solana Wallet Components */}
-      {solanaPublicKey && (
-        <>
-          <SignSolanaMessage signMessage={solanaWallet.signMessage} />
-          <SendSolana />
-        </>
-      )}
+    <div>
+      <ComingSoon></ComingSoon>
     </div>
+    // <div className="space-y-3 px-6 w-full max-w-md mx-auto">
+    //   {/* Wallet Information Display */}
+    //   <WalletStatus address={address} chainId={chainId} />
+
+    //   {/* Connection Controls */}
+    //   <ConnectionControls
+    //     isConnected={isConnected}
+    //     context={context}
+    //     connect={connect}
+    //     connectors={connectors}
+    //     disconnect={disconnect}
+    //   />
+
+    //   {/* EVM Wallet Components */}
+    //   <SignEvmMessage />
+
+    //   {isConnected && (
+    //     <>
+    //       <SendEth />
+    //       <Button
+    //         onClick={sendEvmContractTransaction}
+    //         disabled={!isConnected || isEvmTransactionPending}
+    //         isLoading={isEvmTransactionPending}
+    //         className="w-full"
+    //       >
+    //         Send Transaction (contract)
+    //       </Button>
+    //       {isEvmTransactionError && renderError(evmTransactionError)}
+    //       {evmContractTransactionHash && (
+    //         <div className="text-xs w-full">
+    //           <div>Hash: {truncateAddress(evmContractTransactionHash)}</div>
+    //           <div>
+    //             Status:{" "}
+    //             {isEvmTransactionConfirming
+    //               ? "Confirming..."
+    //               : isEvmTransactionConfirmed
+    //               ? "Confirmed!"
+    //               : "Pending"}
+    //           </div>
+    //         </div>
+    //       )}
+    //       <Button
+    //         onClick={signTyped}
+    //         disabled={!isConnected || isEvmSignTypedDataPending}
+    //         isLoading={isEvmSignTypedDataPending}
+    //         className="w-full"
+    //       >
+    //         Sign Typed Data
+    //       </Button>
+    //       {isEvmSignTypedDataError && renderError(evmSignTypedDataError)}
+    //       <Button
+    //         onClick={handleSwitchChain}
+    //         disabled={isChainSwitchPending}
+    //         isLoading={isChainSwitchPending}
+    //         className="w-full"
+    //       >
+    //         Switch to {nextChain.name}
+    //       </Button>
+    //       {isChainSwitchError && renderError(chainSwitchError)}
+    //     </>
+    //   )}
+
+    //   {/* Solana Wallet Components */}
+    //   {solanaPublicKey && (
+    //     <>
+    //       <SignSolanaMessage signMessage={solanaWallet.signMessage} />
+    //       <SendSolana />
+    //     </>
+    //   )}
+    // </div>
   );
 }
