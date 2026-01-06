@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { SignIn as SignInCore } from '@farcaster/miniapp-sdk';
-import { useQuickAuth } from '~/hooks/useQuickAuth';
-import { Button } from '../Button';
+import { useCallback, useState } from "react";
+import { SignIn as SignInCore } from "@farcaster/miniapp-sdk";
+import { useQuickAuth } from "~/hooks/useQuickAuth";
+import { Button } from "../Button";
 
 /**
  * SignIn component handles Farcaster authentication using QuickAuth.
@@ -52,22 +52,22 @@ export function SignIn() {
    */
   const handleSignIn = useCallback(async () => {
     try {
-      setAuthState(prev => ({ ...prev, signingIn: true }));
+      setAuthState((prev) => ({ ...prev, signingIn: true }));
       setSignInFailure(undefined);
 
       const success = await signIn();
 
       if (!success) {
-        setSignInFailure('Authentication failed');
+        setSignInFailure("Authentication failed");
       }
     } catch (e) {
       if (e instanceof SignInCore.RejectedByUser) {
-        setSignInFailure('Rejected by user');
+        setSignInFailure("Rejected by user");
         return;
       }
-      setSignInFailure('Unknown error');
+      setSignInFailure("Unknown error");
     } finally {
-      setAuthState(prev => ({ ...prev, signingIn: false }));
+      setAuthState((prev) => ({ ...prev, signingIn: false }));
     }
   }, [signIn]);
 
@@ -80,10 +80,10 @@ export function SignIn() {
    */
   const handleSignOut = useCallback(async () => {
     try {
-      setAuthState(prev => ({ ...prev, signingOut: true }));
+      setAuthState((prev) => ({ ...prev, signingOut: true }));
       await signOut();
     } finally {
-      setAuthState(prev => ({ ...prev, signingOut: false }));
+      setAuthState((prev) => ({ ...prev, signingOut: false }));
     }
   }, [signOut]);
 
@@ -91,12 +91,12 @@ export function SignIn() {
   return (
     <>
       {/* Authentication Buttons */}
-      {status !== 'authenticated' && (
+      {status !== "authenticated" && (
         <Button onClick={handleSignIn} disabled={authState.signingIn}>
           Sign In with Farcaster
         </Button>
       )}
-      {status === 'authenticated' && (
+      {status === "authenticated" && (
         <Button onClick={handleSignOut} disabled={authState.signingOut}>
           Sign out
         </Button>

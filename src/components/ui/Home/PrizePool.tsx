@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   Users,
   Trophy,
@@ -9,55 +9,58 @@ import {
   Info,
   Zap,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ethers } from "ethers";
-import { useSendTransaction } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 
 export default function PrizeCardUI() {
-  const [isJoined, setIsJoined] = useState(false);
+  // ১. ট্রানজেকশন পাঠানোর হুক
+  const {
+    data: hash,
+    error,
+    writeContract,
+    isPending: isSubmitting,
+  } = useWriteContract();
 
-  // wagmi এর sendTransaction হুক
-  const { sendTransaction, error } = useSendTransaction();
+  // ২. ট্রানজেকশন কনফার্মেশন চেক করার হুক
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
 
-  // contract এর ABI থেকে function encode করার জন্য
-  const contractAddress = "0xYourContractAddressHere"; // এখানে তোমার কন্ট্রাক্ট অ্যাড্রেস দিবে
-  const abi = ["function enterRaffle()"]; // ধরলাম এমন একটা ফাংশন আছে
+  const contractAddress = "0x6f9FBA04733ff91De596dC5fb64034ee9c2eF7f2";
 
-  // WIN NOW বাটনের হ্যান্ডলার: ট্রানজেকশন পাঠাবে
+  const abi = [
+    {
+      name: "enterRaffle",
+      type: "function",
+      stateMutability: "nonpayable", // বা ফি থাকলে 'payable'
+      inputs: [],
+      outputs: [],
+    },
+  ] as const;
+
   const handleWinNow = useCallback(() => {
-    if (isJoined) {
-      // Already joined, toggle off without txn
-      setIsJoined(false);
-      return;
-    }
+    if (isConfirmed) return; // একবার জয়েন করলে আর কাজ করবে না
 
-    try {
-      const iface = new ethers.Interface(abi);
-      const data = iface.encodeFunctionData("enterRaffle");
-
-      sendTransaction({
-        to: contractAddress,
-        data: data as any,
-      });
-      setIsJoined(true);
-    } catch (err) {
-      console.error("Txn encoding or sending failed:", err);
-    }
-  }, []);
+    writeContract({
+      address: contractAddress as `0x${string}`,
+      abi: abi,
+      functionName: "enterRaffle",
+    });
+  }, [isConfirmed, writeContract]);
 
   return (
-    <div className="flex items-center justify-center px-3 bg-[#020408]">
+    <div className="flex items-center justify-center px-3 bg-[#020408] min-h-screen">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-sm w-full p-5 space-y-6 bg-[#05080f]/80 backdrop-blur-xl rounded-[15px] border border-white/10 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] relative overflow-hidden"
       >
-        {/* Animated Background Orbs */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 blur-[60px] rounded-full animate-pulse"></div>
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full"></div>
 
-        {/* Top Badge: Rarity/Status */}
         <div className="flex justify-between items-center relative z-10">
           <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center gap-1.5">
             <Zap size={12} className="text-blue-400 fill-blue-400" />
@@ -78,9 +81,7 @@ export default function PrizeCardUI() {
           </div>
         </div>
 
-        {/* Main Stats Grid */}
         <div className="grid grid-cols-2 gap-3 relative z-10">
-          {/* Participants Card */}
           <motion.div
             whileHover={{ y: -2 }}
             className="bg-white/[0.03] border border-white/10 rounded-2xl p-4"
@@ -106,7 +107,6 @@ export default function PrizeCardUI() {
             </div>
           </motion.div>
 
-          {/* Prize Pool Card */}
           <motion.div
             whileHover={{ y: -2 }}
             className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 relative overflow-hidden"
@@ -131,7 +131,6 @@ export default function PrizeCardUI() {
           </motion.div>
         </div>
 
-        {/* Prize Distribution (Glass Card) */}
         <div className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 rounded-2xl p-4 relative">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -142,7 +141,6 @@ export default function PrizeCardUI() {
             </div>
             <ShieldCheck size={14} className="text-emerald-500/50" />
           </div>
-
           <div className="space-y-2">
             <div className="flex justify-between items-center p-3 bg-[#05080f]/50 border border-white/5 rounded-xl">
               <div>
@@ -167,20 +165,31 @@ export default function PrizeCardUI() {
           </div>
         </div>
 
-        {/* CTA Section */}
         <div className="space-y-4">
           <motion.button
             onClick={handleWinNow}
+            disabled={isSubmitting || isConfirming || isConfirmed}
             whileTap={{ scale: 0.95 }}
             className={`group relative w-full py-4 rounded-2xl font-black text-sm tracking-widest transition-all duration-500 overflow-hidden ${
-              isJoined
+              isConfirmed
                 ? "bg-emerald-500/10 border border-emerald-500/50 text-emerald-500"
-                : "bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)]"
-            }`}
+                : "bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30_px_-10px_rgba(37,99,235,0.5)]"
+            } disabled:opacity-80 disabled:cursor-not-allowed`}
           >
             <AnimatePresence mode="wait">
-              {isJoined ? (
+              {isSubmitting || isConfirming ? (
                 <motion.span
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <Loader2 size={18} className="animate-spin" />{" "}
+                  {isSubmitting ? "SIGNING..." : "CONFIRMING..."}
+                </motion.span>
+              ) : isConfirmed ? (
+                <motion.span
+                  key="joined"
                   initial={{ y: 20 }}
                   animate={{ y: 0 }}
                   className="flex items-center justify-center gap-2"
@@ -189,6 +198,7 @@ export default function PrizeCardUI() {
                 </motion.span>
               ) : (
                 <motion.span
+                  key="idle"
                   exit={{ y: -20 }}
                   className="relative z-10 flex items-center justify-center gap-2"
                 >
@@ -196,18 +206,19 @@ export default function PrizeCardUI() {
                 </motion.span>
               )}
             </AnimatePresence>
-            {!isJoined && (
+            {!isConfirmed && !isSubmitting && !isConfirming && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
             )}
           </motion.button>
-          {/* Display txn error if any */}
+
           {error && (
-            <p className="text-red-500 text-xs mt-2">
-              Error sending transaction: {error.message}
+            <p className="text-red-500 text-[10px] text-center mt-2 bg-red-500/5 py-1 rounded-lg border border-red-500/10">
+              {error.message.includes("User rejected")
+                ? "Transaction rejected"
+                : "Transaction failed"}
             </p>
           )}
 
-          {/* Bottom Info */}
           <div className="flex flex-col items-center gap-2">
             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-tighter">
               <div className="flex items-center gap-1 text-red-400">
@@ -222,7 +233,6 @@ export default function PrizeCardUI() {
           </div>
         </div>
 
-        {/* Decorative corner element */}
         <div className="absolute top-0 left-0 w-16 h-16 bg-blue-500/10 [clip-path:polygon(0%_0%,100%_0%,0%_100%)]"></div>
       </motion.div>
     </div>

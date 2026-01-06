@@ -5,6 +5,8 @@
 /pnpm-lock.yaml
 package-lock.json
 yarn.lock
+package.json
+pnpm-lock.yaml
 /.pnp
 .pnp.*
 .yarn/*
