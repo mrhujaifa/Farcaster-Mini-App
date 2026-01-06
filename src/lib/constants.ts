@@ -34,6 +34,10 @@ export const APP_TAGS: string[] = [
   "social",
   "crypto",
   "community",
+  "rewards",
+  "badges",
+  "mining",
+  "gamming",
 ];
 
 // --- Asset URLs ---

@@ -1,13 +1,13 @@
-import { AuthOptions, getServerSession } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { createAppClient, viemConnector } from '@farcaster/auth-client';
+import { AuthOptions, getServerSession } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { createAppClient, viemConnector } from "@farcaster/auth-client";
 
-declare module 'next-auth' {
+declare module "next-auth" {
   interface Session {
     provider?: string;
     user?: {
       fid: number;
-      object?: 'user';
+      object?: "user";
       username?: string;
       display_name?: string;
       pfp_url?: string;
@@ -16,7 +16,7 @@ declare module 'next-auth' {
         bio: {
           text: string;
           mentioned_profiles?: Array<{
-            object: 'user_dehydrated';
+            object: "user_dehydrated";
             fid: number;
             username: string;
             display_name: string;
@@ -60,10 +60,10 @@ declare module 'next-auth' {
       score?: number;
     };
     signers?: {
-      object: 'signer';
+      object: "signer";
       signer_uuid: string;
       public_key: string;
-      status: 'approved';
+      status: "approved";
       fid: number;
     }[];
   }
@@ -71,14 +71,14 @@ declare module 'next-auth' {
   interface User {
     provider?: string;
     signers?: Array<{
-      object: 'signer';
+      object: "signer";
       signer_uuid: string;
       public_key: string;
-      status: 'approved';
+      status: "approved";
       fid: number;
     }>;
     user?: {
-      object: 'user';
+      object: "user";
       fid: number;
       username: string;
       display_name: string;
@@ -88,7 +88,7 @@ declare module 'next-auth' {
         bio: {
           text: string;
           mentioned_profiles?: Array<{
-            object: 'user_dehydrated';
+            object: "user_dehydrated";
             fid: number;
             username: string;
             display_name: string;
@@ -136,14 +136,14 @@ declare module 'next-auth' {
   interface JWT {
     provider?: string;
     signers?: Array<{
-      object: 'signer';
+      object: "signer";
       signer_uuid: string;
       public_key: string;
-      status: 'approved';
+      status: "approved";
       fid: number;
     }>;
     user?: {
-      object: 'user';
+      object: "user";
       fid: number;
       username: string;
       display_name: string;
@@ -153,7 +153,7 @@ declare module 'next-auth' {
         bio: {
           text: string;
           mentioned_profiles?: Array<{
-            object: 'user_dehydrated';
+            object: "user_dehydrated";
             fid: number;
             username: string;
             display_name: string;
@@ -201,16 +201,16 @@ declare module 'next-auth' {
 
 function getDomainFromUrl(urlString: string | undefined): string {
   if (!urlString) {
-    console.warn('NEXTAUTH_URL is not set, using localhost:3000 as fallback');
-    return 'localhost:3000';
+    console.warn("NEXTAUTH_URL is not set, using localhost:3000 as fallback");
+    return "localhost:3000";
   }
   try {
     const url = new URL(urlString);
     return url.hostname;
   } catch (error) {
-    console.error('Invalid NEXTAUTH_URL:', urlString, error);
-    console.warn('Using localhost:3000 as fallback');
-    return 'localhost:3000';
+    console.error("Invalid NEXTAUTH_URL:", urlString, error);
+    console.warn("Using localhost:3000 as fallback");
+    return "localhost:3000";
   }
 }
 
@@ -218,45 +218,45 @@ export const authOptions: AuthOptions = {
   // Configure one or more authentication providers
   providers: [
     CredentialsProvider({
-      id: 'neynar',
-      name: 'Sign in with Neynar',
+      id: "neynar",
+      name: "Sign in with Neynar",
       credentials: {
         message: {
-          label: 'Message',
-          type: 'text',
-          placeholder: '0x0',
+          label: "Message",
+          type: "text",
+          placeholder: "0x0",
         },
         signature: {
-          label: 'Signature',
-          type: 'text',
-          placeholder: '0x0',
+          label: "Signature",
+          type: "text",
+          placeholder: "0x0",
         },
         nonce: {
-          label: 'Nonce',
-          type: 'text',
-          placeholder: 'Custom nonce (optional)',
+          label: "Nonce",
+          type: "text",
+          placeholder: "Custom nonce (optional)",
         },
         fid: {
-          label: 'FID',
-          type: 'text',
-          placeholder: '0',
+          label: "FID",
+          type: "text",
+          placeholder: "0",
         },
         signers: {
-          label: 'Signers',
-          type: 'text',
-          placeholder: 'JSON string of signers',
+          label: "Signers",
+          type: "text",
+          placeholder: "JSON string of signers",
         },
         user: {
-          label: 'User Data',
-          type: 'text',
-          placeholder: 'JSON string of user data',
+          label: "User Data",
+          type: "text",
+          placeholder: "JSON string of user data",
         },
       },
       async authorize(credentials) {
         const nonce = credentials?.nonce;
 
         if (!nonce) {
-          console.error('No nonce or CSRF token provided for Neynar auth');
+          console.error("No nonce or CSRF token provided for Neynar auth");
           return null;
         }
 
@@ -270,11 +270,12 @@ export const authOptions: AuthOptions = {
           });
 
           const baseUrl =
-            process.env.VERCEL_ENV === 'production'
+            process.env.VERCEL_ENV === "production"
               ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
               : process.env.VERCEL_URL
-                ? `https://${process.env.VERCEL_URL}`
-                : process.env.NEXTAUTH_URL || `http://localhost:${process.env.PORT ?? 3000}`;
+              ? `https://${process.env.VERCEL_URL}`
+              : process.env.NEXTAUTH_URL ||
+                `http://localhost:${process.env.PORT ?? 3000}`;
 
           const domain = getDomainFromUrl(baseUrl);
 
@@ -293,20 +294,20 @@ export const authOptions: AuthOptions = {
 
           // Validate that the provided FID matches the verified FID
           if (credentials?.fid && parseInt(credentials.fid) !== fid) {
-            console.error('FID mismatch in Neynar auth');
+            console.error("FID mismatch in Neynar auth");
             return null;
           }
 
           return {
             id: fid.toString(),
-            provider: 'neynar',
+            provider: "neynar",
             signers: credentials?.signers
               ? JSON.parse(credentials.signers)
               : undefined,
             user: credentials?.user ? JSON.parse(credentials.user) : undefined,
           };
         } catch (error) {
-          console.error('Error in Neynar auth:', error);
+          console.error("Error in Neynar auth:", error);
           return null;
         }
       },
@@ -317,7 +318,7 @@ export const authOptions: AuthOptions = {
       // Set provider at the root level
       session.provider = token.provider as string;
 
-      if (token.provider === 'neynar') {
+      if (token.provider === "neynar") {
         // For Neynar, use full user data structure from user
         session.user = token.user as typeof session.user;
         session.signers = token.signers as typeof session.signers;
@@ -339,26 +340,26 @@ export const authOptions: AuthOptions = {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
     callbackUrl: {
       name: `next-auth.callback-url`,
       options: {
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
     csrfToken: {
       name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
   },
@@ -368,7 +369,7 @@ export const getSession = async () => {
   try {
     return await getServerSession(authOptions);
   } catch (error) {
-    console.error('Error getting server session:', error);
+    console.error("Error getting server session:", error);
     return null;
   }
 };

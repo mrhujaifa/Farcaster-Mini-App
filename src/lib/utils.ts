@@ -49,7 +49,7 @@ export async function getFarcasterDomainManifest(): Promise<Manifest> {
     accountAssociation: APP_ACCOUNT_ASSOCIATION!,
     miniapp: {
       version: "1",
-      name: APP_NAME ?? "Hello world Mini App",
+      name: APP_NAME ?? "FarRewards",
       homeUrl: APP_URL,
       iconUrl: APP_ICON_URL,
       imageUrl: APP_OG_IMAGE_URL,

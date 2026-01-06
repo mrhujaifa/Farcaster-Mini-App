@@ -105,7 +105,7 @@ export default function App({ title }: AppProps = { title: "FarRewards" }) {
       {/* <Navbar></Navbar> */}
 
       {/* Main content and footer should be centered */}
-      <div className="container py-2 pb-20">
+      <div className="container mx-auto">
         {/* Main title */}
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
 

@@ -271,7 +271,7 @@ export function WalletTab() {
     sendTransaction(
       {
         // call yoink() on Yoink contract
-        to: "0x4bBFD120d9f352A0BEd7a014bd67913a2007a878",
+        to: "0x6f9FBA04733ff91De596dC5fb64034ee9c2eF7f2",
         data: "0x9846cd9efc000023c0",
       },
       {
