@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         <h1 tw="text-8xl text-white">
           {user?.display_name
             ? `Hello from ${user.display_name ?? user.username}!`
-            : "Hello!"}
+            : "Claim $FR"}
         </h1>
       </div>
     ),

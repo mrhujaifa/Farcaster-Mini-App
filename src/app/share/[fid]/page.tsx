@@ -13,7 +13,8 @@ export async function generateMetadata({
   params: Promise<{ fid: string }>;
 }): Promise<Metadata> {
   const { fid } = await params;
-  const imageUrl = `${APP_URL}/api/opengraph-image?fid=${fid}`;
+  const imageUrl =
+    "https://i.ibb.co.com/mVLGHN1P/Gemini-Generated-Image-omds8comds8comds.png";
 
   return {
     title: `${APP_NAME} - Share`,

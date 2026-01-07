@@ -7,9 +7,9 @@ import { Footer } from "~/components/ui/Footer";
 import {
   HomeTab,
   ActionsTab,
-  ContextTab,
   WalletTab,
   ProfileTab,
+  MintTab,
 } from "~/components/ui/tabs";
 import { USE_WALLET } from "~/lib/constants";
 import { useNeynarUser } from "../hooks/useNeynarUser";
@@ -19,7 +19,7 @@ import { Toaster } from "react-hot-toast";
 export enum Tab {
   Home = "home",
   Actions = "actions",
-  Context = "context",
+  Mint = "mint",
   Wallet = "wallet",
   Profile = "profile",
 }
@@ -114,7 +114,7 @@ export default function App({ title }: AppProps = { title: "FarRewards" }) {
         {/* Tab content rendering */}
         {currentTab === Tab.Home && <HomeTab />}
         {currentTab === Tab.Actions && <ActionsTab />}
-        {currentTab === Tab.Context && <ContextTab />}
+        {currentTab === Tab.Mint && <MintTab></MintTab>}
         {currentTab === Tab.Wallet && <WalletTab />}
         {currentTab === Tab.Profile && <ProfileTab />}
 
