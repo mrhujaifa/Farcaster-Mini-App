@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
     fid: Number(requestBody.data.fid),
     title: "Test notification",
     body: "Sent at " + new Date().toISOString(),
+    
   });
 
   if (sendResult.state === "error") {

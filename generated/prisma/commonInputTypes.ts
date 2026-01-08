@@ -99,6 +99,23 @@ export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
 }
 
+export type EnumMintStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MintStatus | Prisma.EnumMintStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMintStatusFilter<$PrismaModel> | $Enums.MintStatus
+}
+
+export type EnumMintStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MintStatus | Prisma.EnumMintStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMintStatusWithAggregatesFilter<$PrismaModel> | $Enums.MintStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMintStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMintStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -191,6 +208,23 @@ export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
+}
+
+export type NestedEnumMintStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MintStatus | Prisma.EnumMintStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMintStatusFilter<$PrismaModel> | $Enums.MintStatus
+}
+
+export type NestedEnumMintStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MintStatus | Prisma.EnumMintStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MintStatus[] | Prisma.ListEnumMintStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMintStatusWithAggregatesFilter<$PrismaModel> | $Enums.MintStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMintStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMintStatusFilter<$PrismaModel>
 }
 
 

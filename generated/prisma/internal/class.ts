@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../generated/prisma\"\n}\n\nmodel Raffle {\n  id           String   @id @default(cuid()) // ডাইনামিক ইউনিক আইডি\n  entriesCount Int      @default(0)\n  maxEntries   Int      @default(100)\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  entries RaffleEntry[]\n}\n\nmodel RaffleEntry {\n  id        String   @id @default(cuid())\n  address   String\n  txHash    String   @unique\n  createdAt DateTime @default(now())\n\n  raffleId String\n  raffle   Raffle @relation(fields: [raffleId], references: [id])\n\n  @@unique([address, raffleId])\n  @@index([address])\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../generated/prisma\"\n}\n\nmodel Raffle {\n  id           String   @id @default(cuid()) // ডাইনামিক ইউনিক আইডি\n  entriesCount Int      @default(0)\n  maxEntries   Int      @default(100)\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  entries RaffleEntry[]\n}\n\nmodel RaffleEntry {\n  id        String   @id @default(cuid())\n  address   String\n  txHash    String   @unique\n  createdAt DateTime @default(now())\n\n  raffleId String\n  raffle   Raffle @relation(fields: [raffleId], references: [id])\n\n  @@unique([address, raffleId])\n  @@index([address])\n}\n\nmodel User {\n  id            String   @id @default(uuid())\n  walletAddress String   @unique\n  createdAt     DateTime @default(now())\n  mints         Mint[]\n}\n\nenum MintStatus {\n  pending\n  confirmed\n  failed\n}\n\nmodel Mint {\n  id              String     @id @default(uuid())\n  walletAddress   String\n  transactionHash String     @unique\n  contractAddress String\n  mintPrice       String\n  nftType         String\n  nftName         String\n  status          MintStatus @default(pending)\n  timestamp       DateTime   @default(now())\n\n  user User @relation(fields: [walletAddress], references: [walletAddress], onDelete: Cascade)\n\n  @@index([walletAddress])\n  @@index([timestamp])\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Raffle\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entriesCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"maxEntries\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"entries\",\"kind\":\"object\",\"type\":\"RaffleEntry\",\"relationName\":\"RaffleToRaffleEntry\"}],\"dbName\":null},\"RaffleEntry\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"txHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"raffleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"raffle\",\"kind\":\"object\",\"type\":\"Raffle\",\"relationName\":\"RaffleToRaffleEntry\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Raffle\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"entriesCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"maxEntries\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"entries\",\"kind\":\"object\",\"type\":\"RaffleEntry\",\"relationName\":\"RaffleToRaffleEntry\"}],\"dbName\":null},\"RaffleEntry\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"address\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"txHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"raffleId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"raffle\",\"kind\":\"object\",\"type\":\"Raffle\",\"relationName\":\"RaffleToRaffleEntry\"}],\"dbName\":null},\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"walletAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"mints\",\"kind\":\"object\",\"type\":\"Mint\",\"relationName\":\"MintToUser\"}],\"dbName\":null},\"Mint\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"walletAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"transactionHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"contractAddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mintPrice\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nftType\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nftName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"MintStatus\"},{\"name\":\"timestamp\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"MintToUser\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -193,6 +193,26 @@ export interface PrismaClient<
     * ```
     */
   get raffleEntry(): Prisma.RaffleEntryDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.user`: Exposes CRUD operations for the **User** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Users
+    * const users = await prisma.user.findMany()
+    * ```
+    */
+  get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.mint`: Exposes CRUD operations for the **Mint** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Mints
+    * const mints = await prisma.mint.findMany()
+    * ```
+    */
+  get mint(): Prisma.MintDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

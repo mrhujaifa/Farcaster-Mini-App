@@ -44,6 +44,9 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
   };
 }
 
+const imgurl =
+  "https://i.ibb.co.com/G4jNXjPX/Gemini-Generated-Image-omds8comds8comds.png";
+
 export async function getFarcasterDomainManifest(): Promise<Manifest> {
   return {
     accountAssociation: APP_ACCOUNT_ASSOCIATION!,
@@ -52,7 +55,7 @@ export async function getFarcasterDomainManifest(): Promise<Manifest> {
       name: APP_NAME ?? "FarRewards",
       homeUrl: APP_URL,
       iconUrl: APP_ICON_URL,
-      imageUrl: APP_OG_IMAGE_URL,
+      imageUrl: imgurl,
       buttonTitle: APP_BUTTON_TEXT ?? "Launch Mini App",
       splashImageUrl: APP_SPLASH_URL,
       splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,

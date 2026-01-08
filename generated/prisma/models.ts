@@ -10,4 +10,6 @@
  */
 export type * from './models/Raffle'
 export type * from './models/RaffleEntry'
+export type * from './models/User'
+export type * from './models/Mint'
 export type * from './commonInputTypes'

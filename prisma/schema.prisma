@@ -32,6 +32,42 @@ model RaffleEntry {
   @@index([address])
 }
 
+
+model User {
+  id            String   @id @default(uuid())
+  walletAddress String   @unique
+  createdAt     DateTime @default(now())
+  mints         Mint[]   @relation("UserMints")
+}
+
+enum MintStatus {
+  pending
+  confirmed
+  failed
+}
+
+model Mint {
+  id              String     @id @default(uuid())
+  walletAddress   String
+  transactionHash String     @unique
+  contractAddress String
+  mintPrice       String
+  nftType         String
+  nftName         String
+  status          MintStatus @default(pending)
+  timestamp       DateTime   @default(now())
+
+  user User @relation("UserMints", fields: [walletAddress], references: [walletAddress], onDelete: Cascade)
+
+  @@index([walletAddress])
+  @@index([timestamp])
+}
+
+
+
+
+
+
 datasource db {
   provider = "postgresql"
 }

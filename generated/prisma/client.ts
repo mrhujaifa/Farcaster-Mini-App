@@ -49,3 +49,13 @@ export type Raffle = Prisma.RaffleModel
  * 
  */
 export type RaffleEntry = Prisma.RaffleEntryModel
+/**
+ * Model User
+ * 
+ */
+export type User = Prisma.UserModel
+/**
+ * Model Mint
+ * 
+ */
+export type Mint = Prisma.MintModel

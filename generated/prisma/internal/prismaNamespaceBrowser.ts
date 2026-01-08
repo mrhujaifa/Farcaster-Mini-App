@@ -52,7 +52,9 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Raffle: 'Raffle',
-  RaffleEntry: 'RaffleEntry'
+  RaffleEntry: 'RaffleEntry',
+  User: 'User',
+  Mint: 'Mint'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -91,6 +93,30 @@ export const RaffleEntryScalarFieldEnum = {
 } as const
 
 export type RaffleEntryScalarFieldEnum = (typeof RaffleEntryScalarFieldEnum)[keyof typeof RaffleEntryScalarFieldEnum]
+
+
+export const UserScalarFieldEnum = {
+  id: 'id',
+  walletAddress: 'walletAddress',
+  createdAt: 'createdAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MintScalarFieldEnum = {
+  id: 'id',
+  walletAddress: 'walletAddress',
+  transactionHash: 'transactionHash',
+  contractAddress: 'contractAddress',
+  mintPrice: 'mintPrice',
+  nftType: 'nftType',
+  nftName: 'nftName',
+  status: 'status',
+  timestamp: 'timestamp'
+} as const
+
+export type MintScalarFieldEnum = (typeof MintScalarFieldEnum)[keyof typeof MintScalarFieldEnum]
 
 
 export const SortOrder = {

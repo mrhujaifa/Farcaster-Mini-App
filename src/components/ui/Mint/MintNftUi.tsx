@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, Suspense } from "react"; // Suspense যোগ করা হয়েছে
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -12,10 +12,134 @@ import {
   ContactShadows,
   MeshTransmissionMaterial,
   Image,
-  useProgress, // প্রোগ্রেস চেক করার জন্য
-  Html, // লোডার দেখানোর জন্য
+  useProgress,
+  Html,
 } from "@react-three/drei";
 import * as THREE from "three";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useSwitchChain,
+  useReadContract,
+} from "wagmi";
+import { parseEther } from "viem";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { abi } from "../../../../abi";
+import { base } from "viem/chains";
+// import { baseSepolia } from "viem/chains";
+
+// --- Configuration ---
+const NFT_CONTRACT_ADDRESS = "0x56a76F3ADe8b686B61f6aDbE53e0f5CAe77696a4"; // main
+// const NFT_CONTRACT_ADDRESS = "0x7978Eb427C0481F657b6B6835544D69b6C3bC82d"; //testnet main ta
+// const NFT_CONTRACT_ADDRESS = "0x3Da2ab5902593e6a9d55C6Ece4AFab1Cc3c7A2e2"; //testnet main ta
+const MINT_PRICE = "0.0001"; // ETH
+
+const NFT_ABI = abi;
+
+// --- Toast Component ---
+const Toast = ({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: string;
+  onClose: () => void;
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const config = {
+    success: {
+      bg: "bg-green-500/10",
+      border: "border-green-500/50",
+      text: "text-green-400",
+      Icon: CheckCircle,
+    },
+    error: {
+      bg: "bg-red-500/10",
+      border: "border-red-500/50",
+      text: "text-red-400",
+      Icon: XCircle,
+    },
+    info: {
+      bg: "bg-cyan-500/10",
+      border: "border-cyan-500/50",
+      text: "text-cyan-400",
+      Icon: Loader2,
+    },
+  };
+
+  const { bg, border, text, Icon } =
+    config[type as keyof typeof config] || config.info;
+
+  return (
+    <motion.div
+      // ডান দিক থেকে স্লাইড হয়ে আসবে
+      initial={{ x: 100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 100, opacity: 0 }}
+      transition={{ type: "spring", damping: 20, stiffness: 100 }}
+      // টপ-রাইট পজিশনিং
+      className={`fixed top-4 right-4 z-[999] 
+                  w-[calc(100%-32px)] max-w-[350px] md:w-[380px]
+                  flex items-center gap-4 px-5 py-4 rounded-xl border ${border} ${bg} backdrop-blur-xl shadow-2xl shadow-black/50`}
+    >
+      {/* গ্লোয়িং আইকন সেকশন */}
+      <div className="flex-shrink-0">
+        <motion.div
+          animate={type === "info" ? { rotate: 360 } : {}}
+          transition={
+            type === "info"
+              ? { repeat: Infinity, duration: 2, ease: "linear" }
+              : {}
+          }
+        >
+          <Icon
+            className={`w-5 h-5 ${text} drop-shadow-[0_0_8px_currentColor]`}
+          />
+        </motion.div>
+      </div>
+
+      {/* টেক্সট সেকশন */}
+      <div className="flex-grow min-w-0">
+        <p
+          className={`text-[9px] uppercase tracking-[0.2em] font-black opacity-50 ${text} mb-0.5`}
+        >
+          System Notification
+        </p>
+        <p className="text-xs md:text-sm font-mono text-white/90 leading-relaxed break-words">
+          {message}
+        </p>
+      </div>
+
+      {/* ক্লোজ বাটন */}
+      <button
+        onClick={onClose}
+        className="flex-shrink-0 self-start p-1 hover:bg-white/10 rounded-lg transition-colors"
+      >
+        <span className="text-white/40 hover:text-white text-lg leading-none">
+          ✕
+        </span>
+      </button>
+
+      {/* নিচের এনিমেটেড প্রগ্রেস বার */}
+      <motion.div
+        initial={{ width: "100%" }}
+        animate={{ width: "0%" }}
+        transition={{ duration: 5, ease: "linear" }}
+        className={`absolute bottom-0 left-0 h-[2px] rounded-full ${text.replace(
+          "text",
+          "bg"
+        )}`}
+      />
+    </motion.div>
+  );
+};
 
 // --- Loader Component ---
 function Loader() {
@@ -84,7 +208,7 @@ const NFT_DATA: NFTItem[] = [
   },
 ];
 
-// --- Optimized CyberBox ---
+// --- CyberBox ---
 const CyberBox = ({
   opened,
   isMobile,
@@ -155,7 +279,7 @@ const CyberBox = ({
   );
 };
 
-// --- Optimized RelicCard ---
+// --- RelicCard ---
 const RelicCard = ({
   opened,
   data,
@@ -237,6 +361,45 @@ export default function PremiumVaultPage() {
   const [opened, setOpened] = useState(false);
   const [activeNFT, setActiveNFT] = useState<NFTItem>(NFT_DATA[0]);
   const [isMobile, setIsMobile] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: string } | null>(
+    null
+  );
+
+  // const [canMintToday, setCanMintToday] = useState(false);
+  // const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+
+  const { address, isConnected } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
+
+  // use can mint or not 24 hours
+  const { data: isCanMint, isLoading: isCanMintLoading } = useReadContract({
+    address: NFT_CONTRACT_ADDRESS,
+    abi: abi,
+    functionName: "canMint",
+    args: [address],
+  });
+
+  // use can mint time management
+  const { data: timeUntilNextMint, isLoading: timeUntilNextMintLoading } =
+    useReadContract({
+      address: NFT_CONTRACT_ADDRESS,
+      abi: abi,
+      functionName: "timeUntilNextMint",
+      args: [address],
+    });
+  const timeLeft = timeUntilNextMint ? Number(timeUntilNextMint) : 0;
+
+  // Wagmi hooks
+
+  const {
+    data: hash,
+    writeContract,
+    isPending: isMintPending,
+    error: mintError,
+  } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({ hash });
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -245,19 +408,202 @@ export default function PremiumVaultPage() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const toggleVault = () => {
-    if (!opened)
-      setActiveNFT(NFT_DATA[Math.floor(Math.random() * NFT_DATA.length)]);
-    setOpened(!opened);
+  // Check mint eligibility when wallet connects
+  // useEffect(() => {
+  //   if (address && isConnected) {
+  //     checkMintEligibility();
+  //   }
+  // }, [address, isConnected]);
+
+  // Handle mint errors
+  useEffect(() => {
+    if (mintError) {
+      showToast(mintError.message || "Transaction failed", "error");
+      setIsMinting(false);
+    }
+  }, [mintError]);
+
+  // Handle transaction confirmation
+  useEffect(() => {
+    if (isConfirming) {
+      showToast("Transaction confirming...", "info");
+    }
+  }, [isConfirming]);
+
+  // Handle successful mint
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      setOpened(true);
+      saveMintToBackend(hash);
+    }
+
+    // if mint error no open box
+    if (mintError) {
+      setOpened(false);
+      setIsMinting(false);
+    }
+  }, [isConfirmed, hash]);
+
+  const showToast = (message: string, type: string) => {
+    setToast({ message, type });
+  };
+
+  // const checkMintEligibility = async () => {
+  //   if (!address) return;
+
+  //   setCheckingEligibility(true);
+  //   try {
+  //     const response = await fetch(`/check-mint-eligibility`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ walletAddress: address }),
+  //     });
+
+  //     const data = await response.json();
+  //     setCanMintToday(data.canMint);
+
+  //     if (!data.canMint) {
+  //       showToast(
+  //         "You have already minted today. Come back tomorrow!",
+  //         "error"
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking eligibility:", error);
+  //     showToast("Failed to check mint eligibility", "error");
+  //     setCanMintToday(true); // Allow attempt if check fails
+  //   } finally {
+  //     setCheckingEligibility(false);
+  //   }
+  // };
+
+  const saveMintToBackend = async (txHash: string) => {
+    try {
+      const response = await fetch(`/api/save-mint`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: address,
+          transactionHash: txHash,
+          contractAddress: NFT_CONTRACT_ADDRESS,
+          mintPrice: MINT_PRICE,
+          nftType: activeNFT.rarity,
+          nftName: activeNFT.name,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast("🎉 NFT minted successfully!", "success");
+        // setCanMintToday(false);
+        setIsMinting(false);
+      } else {
+        showToast(data.error || "Failed to save mint data", "error");
+        setIsMinting(false);
+      }
+    } catch (error) {
+      console.error("Backend save error:", error);
+      showToast("Mint successful but failed to save data", "error");
+      setIsMinting(false);
+    }
+  };
+
+  const handleMint = async () => {
+    if (!isConnected) {
+      showToast("Please connect your wallet first", "error");
+      return;
+    }
+
+    // if (!canMintToday && !checkingEligibility) {
+    //   showToast("You can only mint once per day", "error");
+    //   return;
+    // }
+
+    if (isMinting || isMintPending || isConfirming) {
+      return;
+    }
+
+    try {
+      setIsMinting(true);
+
+      // Select random NFT
+      const selectedNFT = NFT_DATA[Math.floor(Math.random() * NFT_DATA.length)];
+      setActiveNFT(selectedNFT);
+
+      showToast("Preparing transaction...", "info");
+
+      // // Open vault animation
+      // setOpened(true);
+
+      // // Wait a bit for animation
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      //testnet check system
+      // await switchChainAsync({
+      //   chainId: baseSepolia.id,
+      // });
+
+      //mainnet
+      await switchChainAsync({
+        chainId: base.id,
+      });
+
+      // Initiate mint transaction
+      writeContract({
+        address: NFT_CONTRACT_ADDRESS as `0x${string}`,
+        abi: NFT_ABI,
+        functionName: "mint",
+        value: parseEther(MINT_PRICE),
+      });
+    } catch (error: any) {
+      console.error("Mint error:", error);
+      showToast(error.message || "Failed to initiate mint", "error");
+      setIsMinting(false);
+      setOpened(false);
+    }
+  };
+
+  const closeVault = () => {
+    setOpened(false);
+  };
+
+  const getMintButtonText = () => {
+    if (!isConnected) return "Connect Wallet";
+    // if (checkingEligibility) return "Checking...";
+    if (isMintPending) return "Confirm in Wallet...";
+    if (isConfirming) return "Confirming...";
+    if (isMinting) return "Minting...";
+    if (isCanMint) return "Mint Now";
+    if (!isCanMint) return "Already Minted Today";
+    if (opened) return "Close Vault";
+    return "Mint FR NFT";
+  };
+
+  const isButtonDisabled = () => {
+    return (
+      !isConnected ||
+      // checkingEligibility ||
+      isMintPending ||
+      isConfirming ||
+      isMinting ||
+      (!isCanMint && !opened) ||
+      isCanMintLoading
+    );
   };
 
   return (
     <div className="h-[80dvh] w-full flex flex-col items-center justify-between overflow-hidden font-mono selection:bg-cyan-500 relative bg-[#02040a]">
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-3 py-1.5 rounded-xl bg-red-500 text-white font-mono text-[10px] sm:text-xs tracking-widest shadow-lg select-none pointer-events-none max-w-[90vw] text-center">
-        🚀 ⚠️ Mint system is currently running, but some features are still
-        being finalized.
-      </div>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
+      {/* Header */}
       <div className="relative z-10 md:pt-12 text-center pointer-events-none">
         <h1 className="text-white text-2xl md:text-4xl font-black tracking-[0.15em] md:tracking-[0.2em] mb-1 opacity-90 transition-all duration-500">
           Mint Live
@@ -271,11 +617,10 @@ export default function PremiumVaultPage() {
         <div className="h-[1px] w-16 md:w-24 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mx-auto mt-4" />
       </div>
 
-      <div className="absolute inset-0 z-0">
+      {/* 3D Canvas */}
+      <div className="absolute inset-0 z-0 bottom-20 top-0">
         <Canvas shadows dpr={[1, 2]}>
           <Suspense fallback={<Loader />}>
-            {" "}
-            {/* লোডিং ম্যানেজমেন্ট */}
             <PerspectiveCamera
               makeDefault
               position={[0, 0, isMobile ? 10 : 7]}
@@ -313,31 +658,52 @@ export default function PremiumVaultPage() {
         </Canvas>
       </div>
 
+      {/* Bottom Controls */}
       <div className="relative z-10 pb-10 md:pb-12 flex flex-col items-center gap-4 w-full px-6 md:px-8">
         {opened && (
           <div className="text-center mb-4 animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <p className="text-[10px] text-cyan-400 tracking-[0.3em] uppercase">
+            <p className="text-[10px] text-cyan-400 tracking-[0.3em] uppercase mb-2">
               {activeNFT.desc}
+            </p>
+            <p className="text-xs text-white/60 tracking-wider">
+              Price: {MINT_PRICE} ETH
             </p>
           </div>
         )}
 
         <button
-          onClick={toggleVault}
-          className="group relative w-full max-w-[240px] md:max-w-[280px] py-4 md:py-5 bg-[#00050a]/80 backdrop-blur-sm border border-white/10 active:scale-95 transition-all overflow-hidden"
+          onClick={opened ? closeVault : handleMint}
+          disabled={isButtonDisabled()}
+          className="group relative w-full max-w-[240px] md:max-w-[280px] py-4 md:py-5 bg-[#00050a]/80 backdrop-blur-sm border border-white/10 active:scale-95 transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <div className="absolute top-0 left-0 w-full h-[1px] bg-cyan-400/30 group-hover:bg-cyan-400 transition-colors" />
-          <span className="relative text-[10px] md:text-[11px] font-bold tracking-[0.5em] uppercase text-white group-hover:text-cyan-400 transition-colors">
-            {opened ? "Close Vault" : "Mint FR NFT"}
+
+          <span className="relative text-[10px] md:text-[11px] font-bold tracking-[0.5em] uppercase text-white group-hover:text-cyan-400 transition-colors flex items-center justify-center gap-2">
+            {(isMintPending || isConfirming || isMinting) && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
+            {getMintButtonText()}
           </span>
+
           <div className="absolute inset-0 bg-cyan-500/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
         </button>
 
+        {!isCanMint && isConnected && (
+          <p className="text-[10px] text-yellow-400/80 uppercase tracking-wider animate-pulse">
+            <span className="text-red-500 flex justify-center">
+              {timeUntilNextMintLoading ? "Time Loading..." : timeLeft}
+            </span>{" "}
+            <br />
+            <span>⏰ Come back tomorrow to mint again</span>
+          </p>
+        )}
+
         <p className="text-[8px] text-white/20 uppercase tracking-widest">
-          Protocol v4.0.2 - Protected
+          Protocol v4.0.2 - {isConnected ? "Connected" : "Disconnected"}
         </p>
       </div>
 
+      {/* Scan Line Animation */}
       <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500/5 animate-scan pointer-events-none z-30" />
 
       <style jsx>{`
@@ -356,6 +722,19 @@ export default function PremiumVaultPage() {
         }
         .animate-scan {
           animation: scan 10s linear infinite;
+        }
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
         }
       `}</style>
     </div>
