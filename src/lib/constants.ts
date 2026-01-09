@@ -63,7 +63,7 @@ export const APP_SPLASH_URL: string = `${APP_URL}/splash.png`;
  * Background color for the splash screen.
  * Used as fallback when splash image is loading.
  */
-export const APP_SPLASH_BACKGROUND_COLOR: string = "#f7f7f7";
+export const APP_SPLASH_BACKGROUND_COLOR: string = "#6338f4";
 
 /**
  * Account association for the mini app.
@@ -83,7 +83,7 @@ export const APP_ACCOUNT_ASSOCIATION: AccountAssociation | undefined = {
  * Text displayed on the main action button.
  * Used for the primary call-to-action in the mini app.
  */
-export const APP_BUTTON_TEXT: string = "Launch FarRewards";
+export const APP_BUTTON_TEXT: string = "Claim $FR";
 
 // --- Integration Configuration ---
 /**

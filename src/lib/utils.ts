@@ -20,10 +20,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const bannerImg =
+  "https://i.ibb.co.com/G4jNXjPX/Gemini-Generated-Image-omds8comds8comds.png";
+
 export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
   return {
     version: "next",
-    imageUrl: ogImageUrl ?? APP_OG_IMAGE_URL,
+    imageUrl: bannerImg ?? APP_OG_IMAGE_URL,
     ogTitle: APP_NAME,
     ogDescription: APP_DESCRIPTION,
     ogImageUrl: ogImageUrl ?? APP_OG_IMAGE_URL,
