@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "name": "MError",
-  "iconUrl": "https://farrewards.vercel.app/icon.png",
-  "homeUrl": "https://farrewards.vercel.app",
-  "imageUrl": "https://farrewards.vercel.app/api/opengraph-image",
+  "name": "FarRewards",
+  "iconUrl": "https://farcester-mini-app-1.vercel.app/icon.png",
+  "homeUrl": "https://farcester-mini-app-1.vercel.app",
+  "imageUrl": "https://farcester-mini-app-1.vercel.app/api/opengraph-image",
   "buttonTitle": "Launch Mini App",
-  "splashImageUrl": "https://farrewards.vercel.app/splash.png",
+  "splashImageUrl": "https://farcester-mini-app-1.vercel.app/splash.png",
   "splashBackgroundColor": "#171717",
 
   "accountAssociation": {
