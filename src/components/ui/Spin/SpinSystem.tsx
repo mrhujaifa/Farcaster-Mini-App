@@ -193,7 +193,7 @@ const SpinSystem: React.FC = () => {
   };
 
   return (
-    <div className=" bg-[#02040a] text-white flex flex-col items-center p-4 md:p-10 relative overflow-hidden font-sans">
+    <div className="  text-white flex flex-col items-center p-4 md:p-10 relative overflow-hidden font-sans">
       <Toaster position="top-right" />
 
       {/* Responsive SPIN LIMIT HEADER */}

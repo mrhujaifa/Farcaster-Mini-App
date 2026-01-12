@@ -180,7 +180,7 @@ export const SwapTab: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center bg-[#010409] p-6 text-white selection:bg-blue-500/30">
+    <div className="flex items-center justify-center  p-6 text-white selection:bg-blue-500/30">
       <div className="w-full max-w-[440px] relative">
         {/* Glow Effects */}
         <div className="absolute -top-20 -left-10 w-72 h-72 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
