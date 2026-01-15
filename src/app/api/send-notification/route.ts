@@ -6,152 +6,101 @@ import {
 } from "~/lib/kv";
 
 const requestSchema = z.object({
-  title: z.string(),
-  body: z.string(),
+  title: z.string().min(1),
+  body: z.string().min(1),
 });
 
-// Configuration
-const BATCH_SIZE = 100;
-const PARALLEL_BATCHES = 5; // Send 5 batches at once
-const REQUEST_TIMEOUT = 10000; // 10 second timeout
-
-async function sendNotificationBatch(
-  url: string,
-  tokens: string[],
-  title: string,
-  body: string,
-  notificationId: string
-) {
-  const payload = {
-    notificationId,
-    title,
-    body,
-    targetUrl: "https://farstate.vercel.app",
-    tokens,
-  };
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (res.status === 200) {
-      const json = await res.json();
-      return {
-        successful: json?.result?.successfulTokens?.length || 0,
-        invalid: json?.result?.invalidTokens || [],
-        rateLimited: json?.result?.rateLimitedTokens?.length || 0,
-      };
-    } else {
-      console.error(`Batch error (${res.status}):`, await res.text());
-      return { successful: 0, invalid: [], rateLimited: 0 };
-    }
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === "AbortError") {
-      console.error("Batch request timeout");
-    } else {
-      console.error("Batch fetch error:", error);
-    }
-    return { successful: 0, invalid: [], rateLimited: 0 };
-  }
-}
-
 export async function POST(request: NextRequest) {
-  const requestJson = await request.json();
-  const requestBody = requestSchema.safeParse(requestJson);
+  try {
+    // ১. চেক করুন এনভায়রনমেন্ট ভেরিয়েবল আছে কি না (Debug এর জন্য)
+    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+      console.error("Missing Redis Env Vars");
+      return NextResponse.json(
+        { error: "Server Configuration Error" },
+        { status: 500 }
+      );
+    }
 
-  if (requestBody.success === false) {
-    return NextResponse.json(
-      { success: false, errors: requestBody.error.errors },
-      { status: 400 }
-    );
-  }
+    // ২. রিকোয়েস্ট বডি ভ্যালিডেশন
+    const json = await request.json();
+    const parsed = requestSchema.safeParse(json);
 
-  const allKeys = await getUsersNotificationDetails();
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Title and Body are required" },
+        { status: 400 }
+      );
+    }
 
-  const notificationId = `broadcast-${Date.now()}`;
+    // ৩. KV থেকে ইউজার লিস্ট আনা
+    const allUsers = await getUsersNotificationDetails();
+    if (!allUsers || allUsers.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "No users to notify",
+      });
+    }
 
-  // Create batches
-  const batches: Array<{ url: string; tokens: string[] }> = [];
-  for (let i = 0; i < allKeys.length; i += BATCH_SIZE) {
-    const batch = allKeys.slice(i, i + BATCH_SIZE);
-    batches.push({
-      url: batch[0].url,
-      tokens: batch.map((u) => u.token),
-    });
-  }
+    // ৪. URL অনুযায়ী টোকেন গ্রুপিং
+    const urlGroups = allUsers.reduce((acc, curr) => {
+      if (!curr.url || !curr.token) return acc; // ইনভ্যালিড ডাটা স্কিপ
+      if (!acc[curr.url]) acc[curr.url] = [];
+      acc[curr.url].push(curr.token);
+      return acc;
+    }, {} as Record<string, string[]>);
 
-  console.log(`Sending ${batches.length} batches to ${allKeys.length} users`);
+    let totalSuccessful = 0;
+    const allInvalidTokens: string[] = [];
 
-  // Process batches in parallel chunks
-  let totalSuccessful = 0;
-  let totalInvalid = 0;
-  let totalRateLimited = 0;
-  const allInvalidTokens: string[] = [];
+    // ৫. নোটিফিকেশন পাঠানো
+    for (const [url, tokens] of Object.entries(urlGroups)) {
+      // Farcaster batch limit সাধারণত ১০০
+      for (let i = 0; i < tokens.length; i += 100) {
+        const batch = tokens.slice(i, i + 100);
 
-  for (let i = 0; i < batches.length; i += PARALLEL_BATCHES) {
-    const chunk = batches.slice(i, i + PARALLEL_BATCHES);
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              notificationId: `msg-${Date.now()}`,
+              title: parsed.data.title,
+              body: parsed.data.body,
+              targetUrl: "https://farcester-mini-app-1.vercel.app",
+              tokens: batch,
+            }),
+          });
 
-    // Send multiple batches in parallel
-    const results = await Promise.allSettled(
-      chunk.map((batch) =>
-        sendNotificationBatch(
-          batch.url,
-          batch.tokens,
-          requestBody.data.title,
-          requestBody.data.body,
-          notificationId
-        )
-      )
-    );
-
-    // Aggregate results
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        totalSuccessful += result.value.successful;
-        totalInvalid += result.value.invalid.length;
-        totalRateLimited += result.value.rateLimited;
-        allInvalidTokens.push(...result.value.invalid);
+          if (res.ok) {
+            const data = await res.json();
+            totalSuccessful += data.result?.successfulTokens?.length || 0;
+            if (data.result?.invalidTokens) {
+              allInvalidTokens.push(...data.result.invalidTokens);
+            }
+          }
+        } catch (fetchErr) {
+          console.error("Batch fetch failed for URL:", url, fetchErr);
+        }
       }
+    }
+
+    // ৬. ইনভ্যালিড টোকেন ক্লিনআপ (Background-এ)
+    if (allInvalidTokens.length > 0) {
+      removeInvalidNotificationTokens(allInvalidTokens).catch((err) =>
+        console.error("Cleanup error:", err)
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      sentCount: totalSuccessful,
+      invalidCount: allInvalidTokens.length,
     });
-
-    console.log(
-      `Processed ${Math.min(i + PARALLEL_BATCHES, batches.length)}/${
-        batches.length
-      } batches`
+  } catch (error: any) {
+    console.error("Critical Route Error:", error.message);
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error.message },
+      { status: 500 }
     );
   }
-
-  // Cleanup invalid tokens ONCE at the end (not per batch)
-  if (allInvalidTokens.length > 0) {
-    console.log(`Removing ${allInvalidTokens.length} invalid tokens`);
-    // Run in background - don't block response
-    removeInvalidNotificationTokens(allInvalidTokens).catch((err) =>
-      console.error("Failed to remove invalid tokens:", err)
-    );
-  }
-
-  const summary = {
-    successful: totalSuccessful,
-    invalid: totalInvalid,
-    rateLimited: totalRateLimited,
-    totalBatches: batches.length,
-    totalUsers: allKeys.length,
-  };
-
-  console.log("Broadcast complete:", summary);
-
-  return NextResponse.json({
-    success: true,
-    results: summary,
-  });
 }
