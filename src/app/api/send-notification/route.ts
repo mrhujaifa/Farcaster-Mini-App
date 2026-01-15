@@ -6,100 +6,78 @@ import {
 } from "~/lib/kv";
 
 const requestSchema = z.object({
-  title: z.string().min(1),
-  body: z.string().min(1),
+  title: z.string().min(1, "Title is required"),
+  body: z.string().min(1, "Body is required"),
 });
+
+export const maxDuration = 30; // Vercel timeout বাড়াবে
 
 export async function POST(request: NextRequest) {
   try {
-    // ১. চেক করুন এনভায়রনমেন্ট ভেরিয়েবল আছে কি না (Debug এর জন্য)
-    if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-      console.error("Missing Redis Env Vars");
-      return NextResponse.json(
-        { error: "Server Configuration Error" },
-        { status: 500 }
-      );
-    }
-
-    // ২. রিকোয়েস্ট বডি ভ্যালিডেশন
     const json = await request.json();
     const parsed = requestSchema.safeParse(json);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Title and Body are required" },
+        { error: parsed.error.errors[0].message },
         { status: 400 }
       );
     }
 
-    // ৩. KV থেকে ইউজার লিস্ট আনা
     const allUsers = await getUsersNotificationDetails();
     if (!allUsers || allUsers.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "No users to notify",
+        message: "No subscribers found",
       });
     }
 
-    // ৪. URL অনুযায়ী টোকেন গ্রুপিং
+    // URL অনুযায়ী গ্রুপিং
     const urlGroups = allUsers.reduce((acc, curr) => {
-      if (!curr.url || !curr.token) return acc; // ইনভ্যালিড ডাটা স্কিপ
-      if (!acc[curr.url]) acc[curr.url] = [];
-      acc[curr.url].push(curr.token);
+      if (curr?.url && curr?.token) {
+        if (!acc[curr.url]) acc[curr.url] = [];
+        acc[curr.url].push(curr.token);
+      }
       return acc;
     }, {} as Record<string, string[]>);
 
-    let totalSuccessful = 0;
-    const allInvalidTokens: string[] = [];
+    let totalSent = 0;
+    const allInvalid: string[] = [];
 
-    // ৫. নোটিফিকেশন পাঠানো
     for (const [url, tokens] of Object.entries(urlGroups)) {
-      // Farcaster batch limit সাধারণত ১০০
+      // ১০ট করে ব্যাচ পাঠানো (বেশি বড় করলে সার্ভার স্লো হতে পারে)
       for (let i = 0; i < tokens.length; i += 100) {
         const batch = tokens.slice(i, i + 100);
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            notificationId: `msg-${Date.now()}`,
+            title: parsed.data.title,
+            body: parsed.data.body,
+            targetUrl: "https://farcester-mini-app-1.vercel.app",
+            tokens: batch,
+          }),
+        });
 
-        try {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              notificationId: `msg-${Date.now()}`,
-              title: parsed.data.title,
-              body: parsed.data.body,
-              targetUrl: "https://farcester-mini-app-1.vercel.app",
-              tokens: batch,
-            }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            totalSuccessful += data.result?.successfulTokens?.length || 0;
-            if (data.result?.invalidTokens) {
-              allInvalidTokens.push(...data.result.invalidTokens);
-            }
-          }
-        } catch (fetchErr) {
-          console.error("Batch fetch failed for URL:", url, fetchErr);
+        if (res.ok) {
+          const result = await res.json();
+          totalSent += result.result?.successfulTokens?.length || 0;
+          if (result.result?.invalidTokens)
+            allInvalid.push(...result.result.invalidTokens);
         }
       }
     }
 
-    // ৬. ইনভ্যালিড টোকেন ক্লিনআপ (Background-এ)
-    if (allInvalidTokens.length > 0) {
-      removeInvalidNotificationTokens(allInvalidTokens).catch((err) =>
-        console.error("Cleanup error:", err)
-      );
+    if (allInvalid.length > 0) {
+      await removeInvalidNotificationTokens(allInvalid).catch(console.error);
     }
 
-    return NextResponse.json({
-      success: true,
-      sentCount: totalSuccessful,
-      invalidCount: allInvalidTokens.length,
-    });
+    return NextResponse.json({ success: true, sent: totalSent });
   } catch (error: any) {
-    console.error("Critical Route Error:", error.message);
+    console.error("Broadcast Error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
